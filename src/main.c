@@ -1,10 +1,44 @@
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include <curl/curl.h>
 #include "dependencies/cJSON/cJSON.h"
 
 #define TARGET_URL "https://a.4cdn.org/g/threads.json"
+
+typedef struct {
+    char* data;
+    size_t sz;
+} MemChunk;
+
+/*----------------------------------------------------------------------------*/
+
+/* Curl callback */
+static size_t parse_curl_response(char* response, size_t item_sz,
+                                  size_t item_num, void* user_data) {
+    /* Total bytes. This value should be returned */
+    size_t real_sz = item_sz * item_num;
+
+    /* Set by CURLOPT_WRITEDATA in main */
+    MemChunk* mem = (MemChunk*)user_data;
+
+    char* ptr = realloc(mem->data, mem->sz + real_sz + 1);
+    if (!ptr) {
+        fprintf(stderr,
+                "parse_curl_response: Couldn't realloc from %ld to %ld bytes\n",
+                mem->sz, mem->sz + real_sz + 1);
+        return 0;
+    }
+
+    mem->data = ptr;
+    memcpy(&mem->data[mem->sz], response, real_sz);
+    mem->sz += real_sz;
+    mem->data[mem->sz] = '\0';
+
+    return real_sz;
+}
 
 int main(int argc, char** argv) {
     /* Initialize curl */
@@ -14,22 +48,36 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    /* Set target URL and make request to get the JSON string */
+    /* Main memory chunk used for curl responses. mem.data will get reallocated
+     * in parse_curl_response() */
+    MemChunk mem = {
+        .data = malloc(1),
+        .sz   = 0,
+    };
+
+    /* Set target URL, callback function and user_data parameter for callback */
     curl_easy_setopt(curl, CURLOPT_URL, TARGET_URL);
-    CURLcode curl_request_code = curl_easy_perform(curl);
-    if (curl_request_code != CURLE_OK) {
-        fprintf(stderr,
-                "Error: curl_easy_perform didn't return CURLE_OK for URL "
-                "\"%s\"\n",
-                TARGET_URL);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_curl_response);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
+
+    /* Make request to get the JSON string */
+    CURLcode res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+        fprintf(stderr, "Error: curl_easy_perform failed for URL \"%s\": %s\n",
+                TARGET_URL, curl_easy_strerror(res));
+        curl_easy_cleanup(curl);
+        free(mem.data);
         return 1;
     }
 
-    /* Get JSON object from response */
+    puts(mem.data);
+
+    /* TODO: Get JSON object from response */
     cJSON* threads = cJSON_CreateObject();
 
     /* Free stuff */
-    cJSON_Delete(threads);
     curl_easy_cleanup(curl);
+    free(mem.data);
+    cJSON_Delete(threads);
     return 0;
 }
