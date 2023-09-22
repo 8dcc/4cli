@@ -1,25 +1,20 @@
-#+title: Title
+#+title: 4cli
 #+options: toc:nil
 #+startup: showeverything
 #+author: 8dcc
 
-#+begin_comment
-*TODO*: Change project-name and title
-*TODO*: Change output.out in Makefile
-#+end_comment
-
-*Short description.*
+*WIP.*
 
 #+TOC: headlines 2
 
 * Description
-Long description.
+WIP
 
 * Building
 
 #+begin_src console
-$ git clone https://github.com/8dcc/project-name
-$ cd project-name
+$ git clone https://github.com/8dcc/4cli
+$ cd 4cli
 $ make
 ...
 #+end_src
@@ -27,6 +22,6 @@ $ make
 * Usage
 
 #+begin_src console
-$ ./project-name.out --help
+$ ./4cli.out
 ...
 #+end_src
