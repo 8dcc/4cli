@@ -1,9 +1,9 @@
 
 CC=gcc
 CFLAGS=-Wall -Wextra
-LDFLAGS=
+LDFLAGS=-lcurl
 
-OBJ_FILES=main.c.o
+OBJ_FILES=main.c.o dependencies/cJSON/cJSON.c.o
 OBJS=$(addprefix obj/, $(OBJ_FILES))
 
 BIN=4cli.out
@@ -27,6 +27,5 @@ $(BIN): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
 
 obj/%.c.o : src/%.c
-	@mkdir -p obj/
-	$(CC) $(CFLAGS) -c -o $@ $< $(LDFLAGS)
-
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
