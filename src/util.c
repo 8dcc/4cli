@@ -84,3 +84,17 @@ cJSON* json_from_url(const char* url) {
     free(mem.data);
     return ret;
 }
+
+/* Get object with threads from threads.json object */
+cJSON* get_threads_from_page(cJSON* pages, int page) {
+    cJSON* page_json = cJSON_GetArrayItem(pages, page);
+    if (!page_json) {
+        fprintf(stderr,
+                "get_threads_from_page: Couldn't get cJSON object for page "
+                "%d\n",
+                page);
+        return NULL;
+    }
+
+    return cJSON_GetObjectItemCaseSensitive(page_json, "threads");
+}
