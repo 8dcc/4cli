@@ -9,18 +9,29 @@
 #define TARGET_URL "https://a.4cdn.org/g/threads.json"
 
 int main() {
-    cJSON* threads = json_from_url(TARGET_URL);
-    if (!threads) {
-        fprintf(stderr, "4cli: Could not parse URL\n");
-        cJSON_Delete(threads);
+    cJSON* pages = json_from_url(TARGET_URL);
+    if (!pages) {
+        fprintf(stderr, "4cli: Couldn't parse URL for pages\n");
+        cJSON_Delete(pages);
         return 1;
     }
 
-    char* tmp = cJSON_Print(threads);
-    printf("%s", tmp);
-    free(tmp);
+    for (int i = 0; i < 3; i++) {
+        cJSON* page_threads = get_threads_from_page(pages, i);
+        if (!page_threads) {
+            fprintf(stderr, "4cli: Couldn't get pages[%d].threads\n", i);
+            cJSON_Delete(pages);
+            return 1;
+        }
+
+        printf("\n----[ Page %d ]----\n\n", i);
+
+        char* tmp = cJSON_Print(page_threads);
+        printf("%s", tmp);
+        free(tmp);
+    }
 
     /* Free stuff */
-    cJSON_Delete(threads);
+    cJSON_Delete(pages);
     return 0;
 }
