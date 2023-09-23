@@ -42,15 +42,8 @@ static size_t parse_curl_response(char* response, size_t item_sz,
 
 /* Initialize cJSON object from parsed URL response */
 cJSON* json_from_url(const char* url) {
-    /* Initialize curl */
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-        PANIC("curl_easy_init returned NULL");
-        return NULL;
-    }
-
-    /* Main memory chunk used for curl responses. mem.data will get reallocated
-     * in parse_curl_response() */
+    /* Main memory chunk used for curl responses. The data attribute will get
+     * reallocated in parse_curl_response() */
     MemChunk mem = {
         .data = malloc(1),
         .sz   = 0,
@@ -66,7 +59,6 @@ cJSON* json_from_url(const char* url) {
     if (res != CURLE_OK) {
         PANIC("curl_easy_perform failed for URL \"%s\": %s", url,
               curl_easy_strerror(res));
-        curl_easy_cleanup(curl);
         free(mem.data);
         return NULL;
     }
@@ -75,13 +67,10 @@ cJSON* json_from_url(const char* url) {
     cJSON* ret = cJSON_Parse(mem.data);
     if (!ret) {
         PANIC("cJSON_Parse returned NULL");
-        curl_easy_cleanup(curl);
         free(mem.data);
         return NULL;
     }
 
-    /* Free stuff */
-    curl_easy_cleanup(curl);
     free(mem.data);
     return ret;
 }
@@ -117,8 +106,6 @@ static bool fill_thread_from_id(Thread* out, int id) {
 
     if (!thread_replies || !thread_images || !thread_filename || !thread_ext) {
         PANIC("One of the required JSON thread items was NULL");
-
-        printf("%s\n", cJSON_Print(thread));
         return false;
     }
 
@@ -186,7 +173,8 @@ bool threads_from_json(Thread* out, cJSON* in) {
             }
         }
 
-        /* FIXME: More than 1 page */
+        /* FIXME: More than 1 page. Error:
+         * malloc(): invalid next size (unsorted) */
         break;
     }
 

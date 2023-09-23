@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <curl/curl.h>
 #include "../dependencies/cJSON/cJSON.h"
 
 #define BOARD       "g"
@@ -24,6 +25,9 @@ typedef struct {
     char* title;      /* sub */
     char* filename;   /* filename + ext */
 } Thread;
+
+/* src/main.c */
+extern CURL* curl;
 
 /* Initialize cJSON object from parsed URL response */
 cJSON* json_from_url(const char* url);

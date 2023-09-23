@@ -4,10 +4,22 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <curl/curl.h>
 #include "dependencies/cJSON/cJSON.h"
+
 #include "include/util.h"
 
+/* Globals */
+CURL* curl = NULL;
+
 int main() {
+    /* Initialize curl */
+    curl = curl_easy_init();
+    if (!curl) {
+        PANIC("curl_easy_init returned NULL");
+        return 1;
+    }
+
     cJSON* json_threads = json_from_url(THREADS_URL);
     if (!json_threads) {
         PANIC("Couldn't get JSON for threads URL");
@@ -42,7 +54,8 @@ int main() {
     }
 
     /* Free stuff */
-    threads_free(thread_arr);
+    curl_easy_cleanup(curl);
     cJSON_Delete(json_threads);
+    threads_free(thread_arr);
     return 0;
 }
