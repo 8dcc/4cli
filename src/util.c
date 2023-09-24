@@ -75,71 +75,7 @@ cJSON* json_from_url(const char* url) {
     return ret;
 }
 
-/* Fill Thread struct from id */
-static bool fill_thread_from_id(Thread* out, int id) {
-    static char url[255] = { '\0' };
-    snprintf(url, 255, "https://a.4cdn.org/" BOARD "/thread/%d.json", id);
-
-    cJSON* thread = json_from_url(url);
-    if (!thread) {
-        PANIC("json_from_url returned NULL");
-        return false;
-    }
-
-    cJSON* posts = cJSON_GetObjectItemCaseSensitive(thread, "posts");
-    if (!posts || !cJSON_IsArray(posts)) {
-        PANIC("Can't find \"posts\" array in thread JSON");
-        return false;
-    }
-
-    cJSON* fp = cJSON_GetArrayItem(posts, 0);
-    if (!fp) {
-        PANIC("Can't get first post from \"posts\" array in thread JSON");
-        return false;
-    }
-
-    cJSON* thread_replies  = cJSON_GetObjectItemCaseSensitive(fp, "replies");
-    cJSON* thread_images   = cJSON_GetObjectItemCaseSensitive(fp, "images");
-    cJSON* thread_title    = cJSON_GetObjectItemCaseSensitive(fp, "sub");
-    cJSON* thread_filename = cJSON_GetObjectItemCaseSensitive(fp, "filename");
-    cJSON* thread_ext      = cJSON_GetObjectItemCaseSensitive(fp, "ext");
-
-    if (!thread_replies || !thread_images || !thread_filename || !thread_ext) {
-        PANIC("One of the required JSON thread items was NULL");
-        return false;
-    }
-
-    if (!cJSON_IsNumber(thread_replies) || !cJSON_IsNumber(thread_images) ||
-        !cJSON_IsString(thread_filename) || !cJSON_IsString(thread_ext)) {
-        PANIC("One of the required JSON thread items had incorrect type");
-        return false;
-    }
-
-    /* Not all threads have title */
-    if (thread_title && cJSON_IsString(thread_title)) {
-        char* title = malloc(strlen(thread_title->valuestring));
-        strcpy(title, thread_title->valuestring);
-        out->title = title;
-    } else {
-        /* No title, leave NULL */
-        out->title = NULL;
-    }
-
-    char* filename = malloc(strlen(thread_filename->valuestring) +
-                            strlen(thread_ext->valuestring));
-    sprintf(filename, "%s%s", thread_filename->valuestring,
-            thread_ext->valuestring);
-
-    out->id       = id;
-    out->replies  = thread_replies->valueint;
-    out->images   = thread_images->valueint;
-    out->filename = filename;
-
-    cJSON_Delete(thread);
-    return true;
-}
-
-/* Fill Thread list from threads.json object */
+/* Fill thread ID list from threads.json object */
 bool threads_from_json(Thread* out, cJSON* in) {
     int i = 0;
 
@@ -161,32 +97,74 @@ bool threads_from_json(Thread* out, cJSON* in) {
                 return false;
             }
 
-            const uint32_t id = cur_thread_no->valueint;
-            if (!fill_thread_from_id(&out[i++], id)) {
-                PANIC("fill_thread_from_id returned false");
-                return false;
-            }
+            out[i++] = cur_thread_no->valueint;
 
             if (i >= MAX_THREADS) {
                 PANIC("Reached MAX_THREADS");
                 return false;
             }
         }
-
-        /* FIXME: More than 1 page. Error:
-         * malloc(): invalid next size (unsorted) */
-        break;
     }
 
     return true;
 }
 
-/* Free all the allocated strings by fill_thread_from_id() in a Thread array */
-void threads_free(Thread* arr) {
-    for (int i = 0; i < MAX_THREADS; i++) {
-        if (arr[i].title)
-            free(arr[i].title);
-        if (arr[i].filename)
-            free(arr[i].filename);
+/* Print thread information */
+bool print_thread_info(Thread id) {
+    static char url[255] = { '\0' };
+    snprintf(url, 255, "https://a.4cdn.org/" BOARD "/thread/%d.json", id);
+
+    cJSON* thread = json_from_url(url);
+    if (!thread) {
+        PANIC("json_from_url returned NULL (%d)", id);
+        return false;
     }
+
+    cJSON* posts = cJSON_GetObjectItemCaseSensitive(thread, "posts");
+    if (!posts || !cJSON_IsArray(posts)) {
+        PANIC("Can't find \"posts\" array in thread JSON (%d)", id);
+        return false;
+    }
+
+    cJSON* fp = cJSON_GetArrayItem(posts, 0);
+    if (!fp) {
+        PANIC("Can't get first post from array in thread JSON (%d)", id);
+        return false;
+    }
+
+    cJSON* thread_replies  = cJSON_GetObjectItemCaseSensitive(fp, "replies");
+    cJSON* thread_images   = cJSON_GetObjectItemCaseSensitive(fp, "images");
+    cJSON* thread_title    = cJSON_GetObjectItemCaseSensitive(fp, "sub");
+    cJSON* thread_filename = cJSON_GetObjectItemCaseSensitive(fp, "filename");
+    cJSON* thread_ext      = cJSON_GetObjectItemCaseSensitive(fp, "ext");
+
+    if (!thread_replies || !thread_images || !thread_filename || !thread_ext) {
+        PANIC("One of the required JSON thread items was NULL (%d)", id);
+        return false;
+    }
+
+    if (!cJSON_IsNumber(thread_replies) || !cJSON_IsNumber(thread_images) ||
+        !cJSON_IsString(thread_filename) || !cJSON_IsString(thread_ext)) {
+        PANIC("One of the required JSON thread items had incorrect type (%d)",
+              id);
+        return false;
+    }
+
+    /* TODO: Make pretty, print posts indented? */
+    puts("-------------------------------------------------------------------");
+
+    printf("ID: %d\n", id);
+
+    /* Not all threads have title */
+    if (thread_title && cJSON_IsString(thread_title))
+        printf("Title: %s\n", thread_title->valuestring);
+
+    /* FIXME: Crashes on deleted images (they are null) */
+    printf("Filename: %s%s\n", thread_filename->valuestring,
+           thread_ext->valuestring);
+    printf("Replies: %d (%d images)\n", thread_replies->valueint,
+           thread_images->valueint);
+
+    cJSON_Delete(thread);
+    return true;
 }

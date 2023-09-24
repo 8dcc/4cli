@@ -18,13 +18,8 @@
         fputc('\n', stderr);                       \
     }
 
-typedef struct {
-    uint32_t id;      /* no */
-    uint32_t replies; /* replies */
-    uint32_t images;  /* images */
-    char* title;      /* sub */
-    char* filename;   /* filename + ext */
-} Thread;
+/* Thread number */
+typedef uint32_t Thread;
 
 /* src/main.c */
 extern CURL* curl;
@@ -35,7 +30,7 @@ cJSON* json_from_url(const char* url);
 /* Fill Thread list from threads.json object */
 bool threads_from_json(Thread* out, cJSON* in);
 
-/* Free all the allocated strings by fill_thread_from_id() in a Thread array */
-void threads_free(Thread* arr);
+/* Print thread information */
+bool print_thread_info(Thread id);
 
 #endif /* UTIL_H_ */
