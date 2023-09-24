@@ -145,28 +145,42 @@ bool print_thread_info(Thread id) {
     cJSON* thread_title    = cJSON_GetObjectItemCaseSensitive(fp, "sub");
     cJSON* thread_filename = cJSON_GetObjectItemCaseSensitive(fp, "filename");
     cJSON* thread_ext      = cJSON_GetObjectItemCaseSensitive(fp, "ext");
+    cJSON* thread_img_url  = cJSON_GetObjectItemCaseSensitive(fp, "tim");
 
-    /* TODO: Make pretty, print posts indented? */
-    puts("-------------------------------------------------------------------");
-
-    /* Function parameter, nothing to check */
-    printf("ID: %d\n", id);
+    /* Post ID and title */
+    printf(COL_INFO "[%d] " COL_NORM, id);
 
     if (is_cjson_str(thread_title))
-        printf("Title: %s\n", thread_title->valuestring);
+        printf(COL_TITLE "%s" COL_NORM, thread_title->valuestring);
+    else
+        printf(COL_TITLE "Anonymous" COL_NORM);
 
-    if (is_cjson_str(thread_filename) && is_cjson_str(thread_ext))
-        printf("Filename: %s%s\n", thread_filename->valuestring,
-               thread_ext->valuestring);
+    putchar('\n');
 
-    if (is_cjson_int(thread_replies)) {
-        printf("Replies: %d", thread_replies->valueint);
+    /* Image URL and filename. Need to use valuedouble because it's a big int */
+    if (is_cjson_int(thread_img_url) && is_cjson_str(thread_ext)) {
+        printf(COL_URL "https://i.4cdn.org/" BOARD "/%.0f%s" COL_NORM,
+               thread_img_url->valuedouble, thread_ext->valuestring);
 
-        if (is_cjson_int(thread_images))
-            printf(" (%d images)", thread_images->valueint);
+        if (is_cjson_str(thread_filename))
+            printf(" (" COL_FILENAME "%s%s" COL_NORM ")",
+                   thread_filename->valuestring, thread_ext->valuestring);
 
         putchar('\n');
     }
+
+    if (is_cjson_int(thread_replies)) {
+        printf(COL_REPLIES "(%d replies", thread_replies->valueint);
+
+        if (is_cjson_int(thread_images))
+            printf(", %d images", thread_images->valueint);
+
+        printf(")" COL_NORM "\n");
+    }
+
+    /* TODO: Print posts bellow with indentation */
+
+    putchar('\n');
 
     cJSON_Delete(thread);
     return true;
