@@ -21,6 +21,8 @@
         fputc('\n', stderr);                                           \
     }
 
+#define LENGTH(ARR) (int)(sizeof(ARR) / sizeof((ARR)[0]))
+
 /* Thread number */
 typedef uint32_t Thread;
 

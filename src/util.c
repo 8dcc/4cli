@@ -14,6 +14,12 @@ typedef struct {
     size_t sz;
 } MemChunk;
 
+typedef struct {
+    int strlen;
+    const char* str;
+    char c;
+} HtmlEntityPair;
+
 /*----------------------------------------------------------------------------*/
 
 /* Curl callback */
@@ -109,6 +115,37 @@ bool threads_from_json(Thread* out, cJSON* in) {
     return true;
 }
 
+static char* replace_html_entities(char* str) {
+    static const HtmlEntityPair ents[] = {
+        { 6, "&quot;", '\"' }, /**/
+        { 6, "&apos;", '\'' }, /**/
+        { 5, "&amp;", '&' },   /**/
+        { 4, "&lt;", '<' },    /**/
+        { 4, "&gt;", '>' },    /**/
+        { 6, "&#034;", '\"' }, /**/
+        { 6, "&#039", '\'' },  /**/
+        { 6, "&#038;", '&' },  /**/
+        { 6, "&#060;", '<' },  /**/
+        { 6, "&#062;", '>' },  /**/
+    };
+
+    /* Each HTML entity */
+    for (int i = 0; i < LENGTH(ents); i++) {
+        char* cur_ent;
+
+        /* Each ocurrence in the target string */
+        while ((cur_ent = strstr(str, ents[i].str)) != NULL) {
+            /* Replace with real char */
+            *cur_ent = ents[i].c;
+
+            /* Shift the rest of the string */
+            strcpy(cur_ent + 1, cur_ent + ents[i].strlen);
+        }
+    }
+
+    return str;
+}
+
 static inline bool is_cjson_int(cJSON* p) {
     return p && cJSON_IsNumber(p);
 }
@@ -151,9 +188,19 @@ bool print_thread_info(Thread id) {
     printf(COL_INFO "[%d] " COL_NORM, id);
 
     if (is_cjson_str(thread_title))
-        printf(COL_TITLE "%s" COL_NORM, thread_title->valuestring);
+        printf(COL_TITLE "%s" COL_NORM,
+               replace_html_entities(thread_title->valuestring));
     else
         printf(COL_TITLE "Anonymous" COL_NORM);
+
+    if (is_cjson_int(thread_replies)) {
+        printf(COL_REPLIES " (%d replies", thread_replies->valueint);
+
+        if (is_cjson_int(thread_images))
+            printf(", %d images", thread_images->valueint);
+
+        printf(")" COL_NORM);
+    }
 
     putchar('\n');
 
@@ -167,15 +214,6 @@ bool print_thread_info(Thread id) {
                    thread_filename->valuestring, thread_ext->valuestring);
 
         putchar('\n');
-    }
-
-    if (is_cjson_int(thread_replies)) {
-        printf(COL_REPLIES "(%d replies", thread_replies->valueint);
-
-        if (is_cjson_int(thread_images))
-            printf(", %d images", thread_images->valueint);
-
-        printf(")" COL_NORM "\n");
     }
 
     /* TODO: Print posts bellow with indentation */
