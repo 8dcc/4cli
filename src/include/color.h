@@ -31,9 +31,9 @@
 #define COL_WARN     TC_YEL
 #define COL_INFO     TC_B_BLU
 #define COL_TITLE    TC_B_MAG
-#define COL_URL      TC_B_WHT
+#define COL_URL      TC_WHT
 #define COL_FILENAME TC_B_CYN
-#define COL_REPLIES  TC_WHT
+#define COL_REPLIES  TC_B_WHT
 #else
 #define COL_NORM     ""
 #define COL_BOLD     ""
