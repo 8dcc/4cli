@@ -3,12 +3,12 @@
 #+startup: showeverything
 #+author: 8dcc
 
-*WIP.*
+*4chan CLI client.*
 
 #+TOC: headlines 2
 
 * Description
-WIP
+4chan CLI client written in pure C. Uses [[https://curl.se/libcurl/][libcurl]] and [[https://github.com/DaveGamble/cJSON][cJSON]].
 
 * Building
 
@@ -20,6 +20,7 @@ $ make
 #+end_src
 
 * Usage
+The board by default is =/g/=, and can be changed with the =BOARD= macro in [[src/include/util.h]].
 
 #+begin_src console
 $ ./4cli.out
