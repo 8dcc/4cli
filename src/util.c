@@ -109,6 +109,14 @@ bool threads_from_json(Thread* out, cJSON* in) {
     return true;
 }
 
+static inline bool is_cjson_int(cJSON* p) {
+    return p && cJSON_IsNumber(p);
+}
+
+static inline bool is_cjson_str(cJSON* p) {
+    return p && cJSON_IsString(p);
+}
+
 /* Print thread information */
 bool print_thread_info(Thread id) {
     static char url[255] = { '\0' };
@@ -138,32 +146,27 @@ bool print_thread_info(Thread id) {
     cJSON* thread_filename = cJSON_GetObjectItemCaseSensitive(fp, "filename");
     cJSON* thread_ext      = cJSON_GetObjectItemCaseSensitive(fp, "ext");
 
-    if (!thread_replies || !thread_images || !thread_filename || !thread_ext) {
-        PANIC("One of the required JSON thread items was NULL (%d)", id);
-        return false;
-    }
-
-    if (!cJSON_IsNumber(thread_replies) || !cJSON_IsNumber(thread_images) ||
-        !cJSON_IsString(thread_filename) || !cJSON_IsString(thread_ext)) {
-        PANIC("One of the required JSON thread items had incorrect type (%d)",
-              id);
-        return false;
-    }
-
     /* TODO: Make pretty, print posts indented? */
     puts("-------------------------------------------------------------------");
 
+    /* Function parameter, nothing to check */
     printf("ID: %d\n", id);
 
-    /* Not all threads have title */
-    if (thread_title && cJSON_IsString(thread_title))
+    if (is_cjson_str(thread_title))
         printf("Title: %s\n", thread_title->valuestring);
 
-    /* FIXME: Crashes on deleted images (they are null) */
-    printf("Filename: %s%s\n", thread_filename->valuestring,
-           thread_ext->valuestring);
-    printf("Replies: %d (%d images)\n", thread_replies->valueint,
-           thread_images->valueint);
+    if (is_cjson_str(thread_filename) && is_cjson_str(thread_ext))
+        printf("Filename: %s%s\n", thread_filename->valuestring,
+               thread_ext->valuestring);
+
+    if (is_cjson_int(thread_replies)) {
+        printf("Replies: %d", thread_replies->valueint);
+
+        if (is_cjson_int(thread_images))
+            printf(" (%d images)", thread_images->valueint);
+
+        putchar('\n');
+    }
 
     cJSON_Delete(thread);
     return true;
