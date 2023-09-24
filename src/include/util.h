@@ -6,16 +6,19 @@
 #include <curl/curl.h>
 #include "../dependencies/cJSON/cJSON.h"
 
+#include "color.h"
+
 #define BOARD       "g"
 #define THREADS_URL "https://a.4cdn.org/" BOARD "/threads.json"
 
 #define MAX_THREADS 255 /* Thread[] */
 
-#define PANIC(...)                                 \
-    {                                              \
-        fprintf(stderr, "[panic] %s: ", __func__); \
-        fprintf(stderr, __VA_ARGS__);              \
-        fputc('\n', stderr);                       \
+#define PANIC(...)                                                     \
+    {                                                                  \
+        fprintf(stderr, COL_ERROR "[panic] " COL_WARN "%s: " COL_NORM, \
+                __func__);                                             \
+        fprintf(stderr, __VA_ARGS__);                                  \
+        fputc('\n', stderr);                                           \
     }
 
 /* Thread number */

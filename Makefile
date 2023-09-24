@@ -1,3 +1,5 @@
+# Possible macros: USE_COLOR
+SETTINGS?=-DUSE_COLOR
 
 CC=gcc
 CFLAGS=-Wall -Wextra
@@ -28,4 +30,4 @@ $(BIN): $(OBJS)
 
 obj/%.c.o : src/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(SETTINGS) -c -o $@ $<
