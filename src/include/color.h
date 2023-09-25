@@ -34,24 +34,26 @@
 #define COL_ERROR    TC_RED
 #define COL_WARN     TC_YEL
 #define COL_INFO     TC_B_BLU
-#define COL_TITLE    TC_B_MAG
 #define COL_URL      TC_WHT TERM_UNDERLINE
-#define COL_FILENAME TC_B_CYN
-#define COL_REPLIES  TC_B_WHT
-#define COL_POST     TC_WHT
-#define COL_QUOTE    TC_YEL
+#define COL_TITLE    TC_B_MAG /* Thread title */
+#define COL_FILENAME TC_B_CYN /* Post attachments */
+#define COL_REPLIES  TC_B_WHT /* Thread replies */
+#define COL_POST     TC_WHT   /* Normal post text */
+#define COL_QUOTE    TC_YEL   /* >... */
+#define COL_XPOST    TC_B_YEL /* >>1234567 and >>>/g/ */
 #else
 #define COL_NORM     ""
 #define COL_BOLD     ""
 #define COL_ERROR    ""
 #define COL_WARN     ""
 #define COL_INFO     ""
-#define COL_TITLE    ""
 #define COL_URL      ""
+#define COL_TITLE    ""
 #define COL_FILENAME ""
 #define COL_REPLIES  ""
 #define COL_POST     ""
 #define COL_QUOTE    ""
+#define COL_XPOST    ""
 #endif
 
 #endif /* COLOR_H_ */
