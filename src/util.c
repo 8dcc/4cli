@@ -281,12 +281,15 @@ bool print_thread_info(Thread id) {
         return false;
     }
 
+    /* TODO: Iterate posts of thread. If post 0, print normally, otherwise, add
+     * '|' and indentation. */
     cJSON* fp = cJSON_GetArrayItem(posts, 0);
     if (!fp) {
         PANIC("Can't get first post from array in thread JSON (%d)", id);
         return false;
     }
 
+    /* TODO: Rename to post_* */
     cJSON* thread_replies  = cJSON_GetObjectItemCaseSensitive(fp, "replies");
     cJSON* thread_images   = cJSON_GetObjectItemCaseSensitive(fp, "images");
     cJSON* thread_title    = cJSON_GetObjectItemCaseSensitive(fp, "sub");
