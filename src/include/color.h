@@ -23,17 +23,23 @@
 #define TC_CYN "\x1B[0;36m"
 #define TC_WHT "\x1B[0;37m"
 
+/* Misc */
+#define TERM_UNDERLINE   "\x1B[4m"
+#define TERM_NOUNDERLINE "\x1B[24m"
+
 /* App colors, if enabled */
 #ifdef USE_COLOR
-#define COL_NORM     TC_NRM
+#define COL_NORM     TC_NRM TERM_NOUNDERLINE
 #define COL_BOLD     TC_B_NRM
 #define COL_ERROR    TC_RED
 #define COL_WARN     TC_YEL
 #define COL_INFO     TC_B_BLU
 #define COL_TITLE    TC_B_MAG
-#define COL_URL      TC_WHT
+#define COL_URL      TC_WHT TERM_UNDERLINE
 #define COL_FILENAME TC_B_CYN
 #define COL_REPLIES  TC_B_WHT
+#define COL_POST     TC_WHT
+#define COL_QUOTE    TC_YEL
 #else
 #define COL_NORM     ""
 #define COL_BOLD     ""
@@ -44,6 +50,8 @@
 #define COL_URL      ""
 #define COL_FILENAME ""
 #define COL_REPLIES  ""
+#define COL_POST     ""
+#define COL_QUOTE    ""
 #endif
 
 #endif /* COLOR_H_ */
