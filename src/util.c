@@ -249,6 +249,8 @@ static void print_post(const char* str) {
                 break;
         }
     }
+
+    printf("%s", COL_NORM);
 }
 
 static inline bool is_cjson_int(cJSON* p) {
