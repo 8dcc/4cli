@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h> /* isdigit */
 
 #include <curl/curl.h>
 #include "dependencies/cJSON/cJSON.h"
@@ -161,9 +162,9 @@ static char* replace_html_entities(char* str) {
 static char* html2txt(char* str) {
     char* ret = str;
 
-    bool print_newline = false;
-    bool in_label      = false;
-    char* label_start  = str;
+    bool in_br        = false;
+    bool in_label     = false;
+    char* label_start = str;
 
     while (*str != '\0') {
         switch (*str) {
@@ -173,9 +174,10 @@ static char* html2txt(char* str) {
                 str++;
                 break;
             case '>':
-                if (print_newline) {
+                if (in_br) {
                     *label_start = '\n';
                     label_start++;
+                    in_br = false;
                 }
 
                 in_label = false;
@@ -185,7 +187,7 @@ static char* html2txt(char* str) {
             default:
                 if (in_label) {
                     if (*str++ == 'b' && *str++ == 'r')
-                        print_newline = true;
+                        in_br = true;
                 } else {
                     str++;
                 }
@@ -195,6 +197,58 @@ static char* html2txt(char* str) {
     }
 
     return ret;
+}
+
+static void print_post(const char* str) {
+    bool first_of_line = true;
+    bool in_quote      = false;
+    bool in_link       = false;
+
+    printf("%s", COL_POST);
+
+    for (size_t i = 0; str[i] != '\0'; i++) {
+        switch (str[i]) {
+            case '>':
+                if (!in_link) {
+                    if (str[i + 1] == '>' &&
+                        (str[i + 2] == '>' || isdigit(str[i + 2]))) {
+                        printf("%s", COL_URL); /* >>1234 and >>>/g/ */
+                        in_link = true;
+                    } else if (!in_quote && first_of_line) {
+                        printf("%s", COL_QUOTE); /* >text */
+                        in_quote = true;
+                    }
+                }
+
+                first_of_line = false;
+                putchar('>');
+                break;
+            case '\n':
+                printf("%s", COL_POST);
+                in_link       = false;
+                in_quote      = false;
+                first_of_line = true;
+
+                putchar('\n');
+                break;
+            case ' ':
+                if (in_link) {
+                    if (in_quote)
+                        printf("%s", COL_QUOTE);
+                    else
+                        printf("%s", COL_POST);
+
+                    in_link = false;
+                }
+
+                putchar(' ');
+                break;
+            default:
+                first_of_line = false;
+                putchar(str[i]);
+                break;
+        }
+    }
 }
 
 static inline bool is_cjson_int(cJSON* p) {
@@ -234,6 +288,7 @@ bool print_thread_info(Thread id) {
     cJSON* thread_filename = cJSON_GetObjectItemCaseSensitive(fp, "filename");
     cJSON* thread_ext      = cJSON_GetObjectItemCaseSensitive(fp, "ext");
     cJSON* thread_img_url  = cJSON_GetObjectItemCaseSensitive(fp, "tim");
+    cJSON* thread_content  = cJSON_GetObjectItemCaseSensitive(fp, "com");
 
     /* Post ID and title */
     printf(COL_INFO "[%d] " COL_NORM, id);
@@ -267,7 +322,14 @@ bool print_thread_info(Thread id) {
         putchar('\n');
     }
 
-    /* TODO: Print posts bellow with indentation */
+    if (is_cjson_str(thread_content)) {
+        const char* converted =
+          replace_html_entities(html2txt(thread_content->valuestring));
+
+        putchar('\n');
+        print_post(converted);
+        putchar('\n');
+    }
 
     putchar('\n');
 
