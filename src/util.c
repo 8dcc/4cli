@@ -162,36 +162,33 @@ static char* replace_html_entities(char* str) {
 static char* html2txt(char* str) {
     char* ret = str;
 
-    bool in_br        = false;
-    bool in_label     = false;
     char* label_start = str;
+    bool in_br        = false;
 
     while (*str != '\0') {
         switch (*str) {
             case '<':
-                in_label    = true;
                 label_start = str;
                 str++;
+
+                /* If label is <br>, store */
+                if (*str++ == 'b' && *str++ == 'r')
+                    in_br = true;
                 break;
             case '>':
+                /* We are closing a <br> string, place '\n' before shifting */
                 if (in_br) {
                     *label_start = '\n';
                     label_start++;
                     in_br = false;
                 }
 
-                in_label = false;
+                /* Shift rest of string */
                 my_strcpy(label_start, str + 1);
                 str = label_start;
                 break;
             default:
-                if (in_label) {
-                    if (*str++ == 'b' && *str++ == 'r')
-                        in_br = true;
-                } else {
-                    str++;
-                }
-
+                str++;
                 break;
         }
     }
@@ -199,49 +196,55 @@ static char* html2txt(char* str) {
     return ret;
 }
 
+static inline bool iswhitespace(char c) {
+    return c == ' ' || c == '\n';
+}
+
 static void print_post(const char* str) {
     bool first_of_line = true;
-    bool in_quote      = false;
-    bool in_link       = false;
+    bool in_quote      = false; /* >text */
 
     printf("%s", COL_POST);
 
     for (size_t i = 0; str[i] != '\0'; i++) {
         switch (str[i]) {
             case '>':
-                if (!in_link) {
-                    if (str[i + 1] == '>' &&
-                        (str[i + 2] == '>' || isdigit(str[i + 2]))) {
-                        printf("%s", COL_URL); /* >>1234 and >>>/g/ */
-                        in_link = true;
-                    } else if (!in_quote && first_of_line) {
-                        printf("%s", COL_QUOTE); /* >text */
+                if (str[i + 1] == '>') { /* >>... */
+                    const char* last_col = (in_quote) ? COL_QUOTE : COL_POST;
+
+                    if (str[i + 2] == '>') { /* >>>... */
+                        printf(COL_XPOST ">>>");
+
+                        for (i += 3; !iswhitespace(str[i]); i++)
+                            putchar(str[i]);
+                        i--;
+                    } else if (isdigit(str[i + 2])) { /* >>1231231 */
+                        printf(COL_XPOST ">>");
+
+                        for (i += 2; isdigit(str[i]); i++)
+                            putchar(str[i]);
+                        i--;
+                    } else {                  /* >>text */
+                        last_col = COL_QUOTE; /* Force override to quote */
                         in_quote = true;
                     }
+
+                    /* Reset color after >>... */
+                    printf("%s", last_col);
+                } else if (!in_quote && first_of_line) { /* >... */
+                    printf(COL_QUOTE ">");
+                    in_quote = true;
                 }
 
                 first_of_line = false;
-                putchar('>');
                 break;
             case '\n':
+                /* Reset quotes on newline */
                 printf("%s", COL_POST);
-                in_link       = false;
-                in_quote      = false;
+                in_quote = false;
+
                 first_of_line = true;
-
                 putchar('\n');
-                break;
-            case ' ':
-                if (in_link) {
-                    if (in_quote)
-                        printf("%s", COL_QUOTE);
-                    else
-                        printf("%s", COL_POST);
-
-                    in_link = false;
-                }
-
-                putchar(' ');
                 break;
             default:
                 first_of_line = false;
