@@ -196,11 +196,19 @@ static char* html2txt(char* str) {
     return ret;
 }
 
+static inline void print_pad(void) {
+    const int pad = 6;
+
+    printf("%s", COL_NORM);
+    for (int i = 0; i < pad; i++)
+        putchar(' ');
+}
+
 static inline bool iswhitespace(char c) {
     return c == ' ' || c == '\n';
 }
 
-static void print_post(const char* str) {
+static void print_post(const char* str, bool use_pad) {
     bool first_of_line = true;
     bool in_quote      = false; /* >text */
 
@@ -209,6 +217,9 @@ static void print_post(const char* str) {
     for (size_t i = 0; str[i] != '\0'; i++) {
         switch (str[i]) {
             case '>':
+                if (first_of_line && use_pad)
+                    print_pad();
+
                 if (str[i + 1] == '>') { /* >>... */
                     const char* last_col = (in_quote) ? COL_QUOTE : COL_POST;
 
@@ -247,6 +258,9 @@ static void print_post(const char* str) {
                 putchar('\n');
                 break;
             default:
+                if (first_of_line && use_pad)
+                    print_pad();
+
                 first_of_line = false;
                 putchar(str[i]);
                 break;
@@ -281,65 +295,67 @@ bool print_thread_info(Thread id) {
         return false;
     }
 
-    /* TODO: Iterate posts of thread. If post 0, print normally, otherwise, add
-     * '|' and indentation. */
-    cJSON* fp = cJSON_GetArrayItem(posts, 0);
-    if (!fp) {
-        PANIC("Can't get first post from array in thread JSON (%d)", id);
-        return false;
-    }
+    /* Is this the first post? */
+    int post_count = 0;
 
-    /* TODO: Rename to post_* */
-    cJSON* thread_replies  = cJSON_GetObjectItemCaseSensitive(fp, "replies");
-    cJSON* thread_images   = cJSON_GetObjectItemCaseSensitive(fp, "images");
-    cJSON* thread_title    = cJSON_GetObjectItemCaseSensitive(fp, "sub");
-    cJSON* thread_filename = cJSON_GetObjectItemCaseSensitive(fp, "filename");
-    cJSON* thread_ext      = cJSON_GetObjectItemCaseSensitive(fp, "ext");
-    cJSON* thread_img_url  = cJSON_GetObjectItemCaseSensitive(fp, "tim");
-    cJSON* thread_content  = cJSON_GetObjectItemCaseSensitive(fp, "com");
-
-    /* Post ID and title */
-    printf(COL_INFO "[%d] " COL_NORM, id);
-
-    if (is_cjson_str(thread_title))
-        printf(COL_TITLE "%s" COL_NORM,
-               replace_html_entities(thread_title->valuestring));
-    else
-        printf(COL_TITLE "Anonymous" COL_NORM);
-
-    if (is_cjson_int(thread_replies)) {
-        printf(COL_REPLIES " (%d replies", thread_replies->valueint);
-
-        if (is_cjson_int(thread_images))
-            printf(", %d images", thread_images->valueint);
-
-        printf(")" COL_NORM);
-    }
-
-    putchar('\n');
-
-    /* Image URL and filename. Need to use valuedouble because it's a big int */
-    if (is_cjson_int(thread_img_url) && is_cjson_str(thread_ext)) {
-        printf(COL_URL "https://i.4cdn.org/" BOARD "/%.0f%s" COL_NORM,
-               thread_img_url->valuedouble, thread_ext->valuestring);
-
-        if (is_cjson_str(thread_filename))
-            printf(" (" COL_FILENAME "%s%s" COL_NORM ")",
-                   thread_filename->valuestring, thread_ext->valuestring);
+    cJSON* p;
+    cJSON_ArrayForEach(p, posts) {
+        cJSON* post_replies  = cJSON_GetObjectItemCaseSensitive(p, "replies");
+        cJSON* post_images   = cJSON_GetObjectItemCaseSensitive(p, "images");
+        cJSON* post_title    = cJSON_GetObjectItemCaseSensitive(p, "sub");
+        cJSON* post_filename = cJSON_GetObjectItemCaseSensitive(p, "filename");
+        cJSON* post_ext      = cJSON_GetObjectItemCaseSensitive(p, "ext");
+        cJSON* post_img_url  = cJSON_GetObjectItemCaseSensitive(p, "tim");
+        cJSON* post_content  = cJSON_GetObjectItemCaseSensitive(p, "com");
 
         putchar('\n');
-    }
+        if (post_count > 0)
+            print_pad();
 
-    if (is_cjson_str(thread_content)) {
-        const char* converted =
-          replace_html_entities(html2txt(thread_content->valuestring));
+        /* Post ID and title */
+        printf(COL_INFO "[%d] " COL_NORM, id);
+
+        if (is_cjson_str(post_title))
+            printf(COL_TITLE "%s" COL_NORM,
+                   replace_html_entities(post_title->valuestring));
+        else
+            printf(COL_TITLE "Anonymous" COL_NORM);
+
+        if (is_cjson_int(post_replies)) {
+            printf(COL_REPLIES " (%d replies", post_replies->valueint);
+
+            if (is_cjson_int(post_images))
+                printf(", %d images", post_images->valueint);
+
+            printf(")" COL_NORM);
+        }
+
+        /* Image URL and filename. Need to use valuedouble because of size */
+        if (is_cjson_int(post_img_url) && is_cjson_str(post_ext)) {
+            putchar('\n');
+            if (post_count > 0)
+                print_pad();
+
+            printf(COL_URL "https://i.4cdn.org/" BOARD "/%.0f%s" COL_NORM,
+                   post_img_url->valuedouble, post_ext->valuestring);
+
+            if (is_cjson_str(post_filename))
+                printf(" (" COL_FILENAME "%s%s" COL_NORM ")",
+                       post_filename->valuestring, post_ext->valuestring);
+        }
+
+        /* Post content */
+        if (is_cjson_str(post_content)) {
+            const char* converted =
+              replace_html_entities(html2txt(post_content->valuestring));
+
+            putchar('\n');
+            print_post(converted, post_count > 0);
+        }
 
         putchar('\n');
-        print_post(converted);
-        putchar('\n');
+        post_count++;
     }
-
-    putchar('\n');
 
     cJSON_Delete(thread);
     return true;
