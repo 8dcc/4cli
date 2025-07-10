@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include <curl/curl.h>
-#include "dependencies/cJSON/cJSON.h"
+#include <cjson/cJSON.h>
 
 #include "include/thread.h"
 #include "include/util.h"

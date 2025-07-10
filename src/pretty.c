@@ -4,7 +4,7 @@
 #include <ctype.h> /* isdigit */
 
 #include <curl/curl.h>
-#include "dependencies/cJSON/cJSON.h"
+#include <cjson/cJSON.h>
 
 #include "include/pretty.h"
 #include "include/util.h"

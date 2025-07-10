@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "../dependencies/cJSON/cJSON.h"
+#include <cjson/cJSON.h>
 
 /* Thread number */
 typedef uint32_t Thread;

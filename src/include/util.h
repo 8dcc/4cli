@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #include <curl/curl.h>
-#include "../dependencies/cJSON/cJSON.h"
+#include <cjson/cJSON.h>
 
 #include "color.h"
 

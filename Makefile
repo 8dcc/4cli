@@ -2,9 +2,9 @@
 CC       := gcc
 CFLAGS   := -std=c99 -Wall -Wextra -Wpedantic -Wshadow# -ggdb3 -fsanitize=address,leak,undefined -fstack-protector-strong
 CPPFLAGS := -DUSE_COLOR
-LDLIBS   := -lcurl
+LDLIBS   := -lcurl -lcjson
 
-SRC := main.c util.c thread.c pretty.c dependencies/cJSON/cJSON.c
+SRC := main.c util.c thread.c pretty.c
 OBJ := $(addprefix obj/, $(addsuffix .o, $(SRC)))
 
 BIN := 4cli
