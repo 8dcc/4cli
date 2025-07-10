@@ -1,28 +1,30 @@
-#+title: 4cli
-#+options: toc:nil
-#+startup: showeverything
-#+author: 8dcc
+#+TITLE: 4cli
+#+AUTHOR: 8dcc
+#+OPTIONS: toc:2
+#+STARTUP: nofold
 
-*4chan CLI client.*
+4chan CLI client written in pure C.
 
-#+TOC: headlines 2
+* Dependencies
 
-* Description
-4chan CLI client written in pure C. Uses [[https://curl.se/libcurl/][libcurl]] and [[https://github.com/DaveGamble/cJSON][cJSON]].
+This program depends on the [[https://curl.se/libcurl/][libcurl]] and [[https://github.com/DaveGamble/cJSON][cJSON]] C libraries, so they must be
+installed in your system.
 
 * Building
 
-#+begin_src console
-$ git clone https://github.com/8dcc/4cli
-$ cd 4cli
-$ make
-...
+#+begin_src bash
+git clone https://github.com/8dcc/4cli
+cd 4cli
+make
+# ...
 #+end_src
 
 * Usage
-The board by default is =/g/=, and can be changed with the =BOARD= macro in [[src/include/util.h]].
 
-#+begin_src console
-$ ./4cli.out
-...
+The board by default is =/g/=, and can be changed with the =BOARD= macro in
+[[file:src/include/main.h]].
+
+#+begin_src bash
+./4cli
+# ...
 #+end_src
