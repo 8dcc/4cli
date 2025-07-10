@@ -1,0 +1,12 @@
+
+#ifndef PRETTY_H_
+#define PRETTY_H_ 1
+
+#include <stdbool.h>
+
+#include "thread.h"
+
+/* Print thread information */
+bool print_thread_info(Thread id);
+
+#endif /* PRETTY_H_ */

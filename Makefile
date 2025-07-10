@@ -5,7 +5,7 @@ CC=gcc
 CFLAGS=-Wall -Wextra
 LDFLAGS=-lcurl
 
-OBJ_FILES=main.c.o util.c.o dependencies/cJSON/cJSON.c.o
+OBJ_FILES=main.c.o util.c.o thread.c.o pretty.c.o dependencies/cJSON/cJSON.c.o
 OBJS=$(addprefix obj/, $(OBJ_FILES))
 
 BIN=4cli.out

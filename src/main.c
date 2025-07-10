@@ -7,7 +7,10 @@
 #include <curl/curl.h>
 #include "dependencies/cJSON/cJSON.h"
 
+#include "include/main.h"
 #include "include/util.h"
+#include "include/thread.h"
+#include "include/pretty.h"
 
 /* Globals */
 CURL* curl = NULL;
