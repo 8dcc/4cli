@@ -1,33 +1,35 @@
-# Possible macros: USE_COLOR
-SETTINGS?=-DUSE_COLOR
 
-CC=gcc
-CFLAGS=-Wall -Wextra
-LDFLAGS=-lcurl
+CC       := gcc
+CFLAGS   := -std=c99 -Wall -Wextra -Wpedantic -Wshadow# -ggdb3 -fsanitize=address,leak,undefined -fstack-protector-strong
+CPPFLAGS := -DUSE_COLOR
+LDLIBS   := -lcurl
 
-OBJ_FILES=main.c.o util.c.o thread.c.o pretty.c.o dependencies/cJSON/cJSON.c.o
-OBJS=$(addprefix obj/, $(OBJ_FILES))
+SRC := main.c util.c thread.c pretty.c dependencies/cJSON/cJSON.c
+OBJ := $(addprefix obj/, $(addsuffix .o, $(SRC)))
 
-BIN=4cli.out
+BIN := 4cli
 
-.PHONY: clean all run
+PREFIX := /usr/local
+BINDIR := $(PREFIX)/bin
 
-# -------------------------------------------
+#-------------------------------------------------------------------------------
+
+.PHONY: all clean install
 
 all: $(BIN)
 
-run: $(BIN)
-	./$<
-
 clean:
-	rm -f $(OBJS)
+	rm -f $(OBJ)
 	rm -f $(BIN)
 
-# -------------------------------------------
+install: $(BIN)
+	install -D -m 755 $^ -t $(DESTDIR)$(BINDIR)
 
-$(BIN): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
+#-------------------------------------------------------------------------------
+
+$(BIN): $(OBJ)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
 
 obj/%.c.o : src/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(SETTINGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $<
