@@ -1,6 +1,5 @@
-# Doxygen documentation
-/doc/html/
-/doc/latex/
+# Main binary
+4cli
 
 # Prerequisites
 *.d
