@@ -10,24 +10,34 @@
 #include "include/util.h"
 #include "include/main.h"
 
+/*
+ * Structure representing an HTML entity string, along with its corresponding
+ * ASCII character.
+ */
 typedef struct {
-    int strlen;
-    const char* str;
-    char c;
+    const char* html_str;
+    size_t html_str_len;
+    char character;
 } HtmlEntityPair;
 
+/*
+ * Helper macro to create an 'HtmlEntityPair' structure from a string literal
+ * and an ASCII character at compile-time.
+ */
+#define HTML_ENTITY_PAIR(HTML, CH)                                             \
+    { .html_str = HTML, .html_str_len = STRLEN(HTML), .character = CH }
+
+/*
+ * Replace each HTML entity in the input string with its corresponding ASCII
+ * character.
+ */
 static char* replace_html_entities(char* str) {
-    static const HtmlEntityPair ents[] = {
-        { 6, "&quot;", '\"' }, /**/
-        { 6, "&apos;", '\'' }, /**/
-        { 5, "&amp;", '&' },   /**/
-        { 4, "&lt;", '<' },    /**/
-        { 4, "&gt;", '>' },    /**/
-        { 6, "&#034;", '\"' }, /**/
-        { 6, "&#039", '\'' },  /**/
-        { 6, "&#038;", '&' },  /**/
-        { 6, "&#060;", '<' },  /**/
-        { 6, "&#062;", '>' },  /**/
+    static const HtmlEntityPair entity_map[] = {
+        HTML_ENTITY_PAIR("&quot;", '\"'), HTML_ENTITY_PAIR("&apos;", '\''),
+        HTML_ENTITY_PAIR("&amp;", '&'),   HTML_ENTITY_PAIR("&lt;", '<'),
+        HTML_ENTITY_PAIR("&gt;", '>'),    HTML_ENTITY_PAIR("&#034;", '\"'),
+        HTML_ENTITY_PAIR("&#039", '\''),  HTML_ENTITY_PAIR("&#038;", '&'),
+        HTML_ENTITY_PAIR("&#060;", '<'),  HTML_ENTITY_PAIR("&#062;", '>'),
     };
 
     /*
@@ -37,9 +47,9 @@ static char* replace_html_entities(char* str) {
      */
     for (size_t i = 0; i < ARRLEN(entity_map); i++) {
         char* cur_ent;
-        while ((cur_ent = strstr(str, ents[i].str)) != NULL) {
-            *cur_ent = ents[i].c;
-            my_strcpy(cur_ent + 1, cur_ent + ents[i].strlen);
+        while ((cur_ent = strstr(str, entity_map[i].html_str)) != NULL) {
+            *cur_ent = entity_map[i].character;
+            my_strcpy(cur_ent + 1, cur_ent + entity_map[i].html_str_len);
         }
     }
 

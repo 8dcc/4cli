@@ -14,6 +14,11 @@
  */
 #define ARRLEN(ARR) (sizeof(ARR) / sizeof((ARR)[0]))
 
+/*
+ * Return the length of a string literal at compile-time.
+ */
+#define STRLEN(STR) (ARRLEN(STR) - 1)
+
 #define PANIC(...)                                                             \
     {                                                                          \
         fprintf(stderr,                                                        \
