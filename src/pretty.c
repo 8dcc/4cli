@@ -30,16 +30,15 @@ static char* replace_html_entities(char* str) {
         { 6, "&#062;", '>' },  /**/
     };
 
-    /* Each HTML entity */
-    for (int i = 0; i < LENGTH(ents); i++) {
+    /*
+     * For each entity in the map, iterate all occurrences of that entity in the
+     * target string. For each occurrence, insert the replacement character and
+     * shift the rest of the input.
+     */
+    for (size_t i = 0; i < ARRLEN(entity_map); i++) {
         char* cur_ent;
-
-        /* Each ocurrence in the target string */
         while ((cur_ent = strstr(str, ents[i].str)) != NULL) {
-            /* Replace with real char */
             *cur_ent = ents[i].c;
-
-            /* Shift the rest of the string */
             my_strcpy(cur_ent + 1, cur_ent + ents[i].strlen);
         }
     }

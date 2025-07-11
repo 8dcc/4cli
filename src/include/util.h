@@ -9,7 +9,10 @@
 
 #include "color.h"
 
-#define LENGTH(ARR) (int)(sizeof(ARR) / sizeof((ARR)[0]))
+/*
+ * Return the length of an array at compile-time.
+ */
+#define ARRLEN(ARR) (sizeof(ARR) / sizeof((ARR)[0]))
 
 #define PANIC(...)                                                             \
     {                                                                          \
