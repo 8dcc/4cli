@@ -13,11 +13,6 @@ typedef uint32_t Thread;
 #define MAX_THREADS 255 /* Thread[] */
 
 /*
- * Request the contents of the specified URL, and parse them as JSON.
- */
-cJSON* request_json_from_url(const char* url);
-
-/*
  * Fill Thread list from threads.json object.
  */
 bool threads_from_json(Thread* out, cJSON* in);

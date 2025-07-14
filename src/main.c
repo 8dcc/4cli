@@ -9,6 +9,7 @@
 
 #include "include/main.h"
 #include "include/util.h"
+#include "include/request.h"
 #include "include/thread.h"
 #include "include/pretty.h"
 

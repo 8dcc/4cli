@@ -7,6 +7,7 @@
 #include <cjson/cJSON.h>
 
 #include "include/pretty.h"
+#include "include/request.h"
 #include "include/util.h"
 #include "include/main.h"
 
