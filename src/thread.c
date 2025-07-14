@@ -49,8 +49,7 @@ static size_t data_received_callback(char* response, size_t item_sz,
     return real_sz;
 }
 
-/* Initialize cJSON object from parsed URL response */
-cJSON* json_from_url(const char* url) {
+cJSON* request_json_from_url(const char* url) {
     cJSON* result = NULL;
 
     /*
@@ -101,7 +100,6 @@ done:
     return result;
 }
 
-/* Fill thread ID list from threads.json object */
 bool threads_from_json(Thread* out, cJSON* in) {
     int i = 0;
 

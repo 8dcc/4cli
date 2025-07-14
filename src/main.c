@@ -26,8 +26,8 @@ int main(void) {
         goto cleanup_curl;
     }
 
-    cJSON* json_threads = json_from_url(THREADS_URL);
-    if (json_threads == NULL) {
+    cJSON* threads_json = request_json_from_url(THREADS_URL);
+    if (threads_json == NULL) {
         PANIC("Couldn't get JSON for \"threads\" URL.");
         exit_code = EXIT_FAILURE;
         goto cleanup_json;
@@ -37,7 +37,7 @@ int main(void) {
     for (int i = 0; i < MAX_THREADS; i++)
         thread_arr[i] = 0;
 
-    if (!threads_from_json(thread_arr, json_threads)) {
+    if (!threads_from_json(thread_arr, threads_json)) {
         PANIC("Couldn't get thread ID array from JSON.");
         exit_code = EXIT_FAILURE;
         goto cleanup_json;
@@ -55,7 +55,8 @@ int main(void) {
     }
 
 cleanup_json:
-    cJSON_Delete(json_threads);
+    cJSON_Delete(threads_json);
+
 cleanup_curl:
     curl_easy_cleanup(curl);
 

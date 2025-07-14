@@ -173,7 +173,7 @@ bool print_thread_info(Thread id) {
     static char url[255] = { '\0' };
     snprintf(url, 255, "https://a.4cdn.org/" BOARD "/thread/%d.json", id);
 
-    cJSON* thread = json_from_url(url);
+    cJSON* thread = request_json_from_url(url);
     if (!thread) {
         PANIC("json_from_url returned NULL (%d)", id);
         return false;
