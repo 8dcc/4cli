@@ -16,20 +16,20 @@
 CURL* curl = NULL;
 
 int main(void) {
-    int result = 0;
+    int exit_code = EXIT_SUCCESS;
 
     /* Initialize curl */
     curl = curl_easy_init();
     if (curl == NULL) {
         PANIC("Failed to initialize 'CURL' object.");
-        result = 1;
+        exit_code = EXIT_FAILURE;
         goto cleanup_curl;
     }
 
     cJSON* json_threads = json_from_url(THREADS_URL);
     if (json_threads == NULL) {
         PANIC("Couldn't get JSON for \"threads\" URL.");
-        result = 1;
+        exit_code = EXIT_FAILURE;
         goto cleanup_json;
     }
 
@@ -39,7 +39,7 @@ int main(void) {
 
     if (!threads_from_json(thread_arr, json_threads)) {
         PANIC("Couldn't get thread ID array from JSON.");
-        result = 1;
+        exit_code = EXIT_FAILURE;
         goto cleanup_json;
     }
 
@@ -49,7 +49,7 @@ int main(void) {
 
         if (!print_thread_info(thread_arr[i])) {
             PANIC("Couldn't print thread information.");
-            result = 1;
+            exit_code = EXIT_FAILURE;
             goto cleanup_json;
         }
     }
@@ -58,5 +58,6 @@ cleanup_json:
     cJSON_Delete(json_threads);
 cleanup_curl:
     curl_easy_cleanup(curl);
-    return result;
+
+    return exit_code;
 }
