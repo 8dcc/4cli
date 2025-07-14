@@ -13,7 +13,7 @@
 typedef struct {
     char* data;
     size_t sz;
-} MemChunk;
+} Buffer;
 
 /* Curl callback */
 static size_t parse_curl_response(char* response,
@@ -24,20 +24,20 @@ static size_t parse_curl_response(char* response,
     size_t real_sz = item_sz * item_num;
 
     /* Set by CURLOPT_WRITEDATA in main */
-    MemChunk* mem = (MemChunk*)user_data;
+    Buffer* buffer = (Buffer*)user_data;
 
-    char* ptr = realloc(mem->data, mem->sz + real_sz + 1);
+    char* ptr = realloc(buffer->data, buffer->sz + real_sz + 1);
     if (!ptr) {
         PANIC("Couldn't realloc from %ld to %ld bytes",
-              mem->sz,
-              mem->sz + real_sz + 1);
+              buffer->sz,
+              buffer->sz + real_sz + 1);
         return 0;
     }
 
-    mem->data = ptr;
-    memcpy(&mem->data[mem->sz], response, real_sz);
-    mem->sz += real_sz;
-    mem->data[mem->sz] = '\0';
+    buffer->data = ptr;
+    memcpy(&buffer->data[buffer->sz], response, real_sz);
+    buffer->sz += real_sz;
+    buffer->data[buffer->sz] = '\0';
 
     return real_sz;
 }
@@ -46,7 +46,7 @@ static size_t parse_curl_response(char* response,
 cJSON* json_from_url(const char* url) {
     /* Main memory chunk used for curl responses. The data attribute will get
      * reallocated in parse_curl_response() */
-    MemChunk mem = {
+    Buffer buffer = {
         .data = NULL,
         .sz   = 0,
     };
@@ -54,7 +54,7 @@ cJSON* json_from_url(const char* url) {
     /* Set target URL, callback function and user_data parameter for callback */
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_curl_response);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 
     /* Make request to get the JSON string */
     CURLcode res = curl_easy_perform(curl);
@@ -62,19 +62,19 @@ cJSON* json_from_url(const char* url) {
         PANIC("curl_easy_perform failed for URL \"%s\": %s",
               url,
               curl_easy_strerror(res));
-        free(mem.data);
+        free(buffer.data);
         return NULL;
     }
 
     /* Fill JSON object parameter with parsed response */
-    cJSON* ret = cJSON_Parse(mem.data);
+    cJSON* ret = cJSON_Parse(buffer.data);
     if (!ret) {
         PANIC("cJSON_Parse returned NULL");
-        free(mem.data);
+        free(buffer.data);
         return NULL;
     }
 
-    free(mem.data);
+    free(buffer.data);
     return ret;
 }
 
