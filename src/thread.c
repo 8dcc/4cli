@@ -47,7 +47,7 @@ cJSON* json_from_url(const char* url) {
     /* Main memory chunk used for curl responses. The data attribute will get
      * reallocated in parse_curl_response() */
     MemChunk mem = {
-        .data = malloc(1),
+        .data = NULL,
         .sz   = 0,
     };
 
