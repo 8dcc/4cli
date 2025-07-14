@@ -51,38 +51,54 @@ static size_t data_received_callback(char* response, size_t item_sz,
 
 /* Initialize cJSON object from parsed URL response */
 cJSON* json_from_url(const char* url) {
-    /* Main memory chunk used for curl responses. The data attribute will get
-     * reallocated in parse_curl_response() */
+    cJSON* result = NULL;
+
+    /*
+     * Main buffer used to store curl responses. The 'data' member will get
+     * reallocated as needed in 'on_curl_write'.
+     */
     Buffer buffer = {
         .data = NULL,
         .sz   = 0,
     };
 
-    /* Set target URL, callback function and user_data parameter for callback */
+    /*
+     * Set target URL, the callback function and the 'user_data' parameter of
+     * the callback.
+     */
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, data_received_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 
     /* Make request to get the JSON string */
-    CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        PANIC("curl_easy_perform failed for URL \"%s\": %s",
+    const CURLcode code = curl_easy_perform(curl);
+    if (code != CURLE_OK) {
+        PANIC("Failed to perform request to '%s': %s",
               url,
-              curl_easy_strerror(res));
-        free(buffer.data);
-        return NULL;
+              curl_easy_strerror(code));
+        goto done;
+    }
+
+    /* Make sure the callback filled the buffer with some data */
+    if (buffer.data == NULL || buffer.sz <= 0) {
+        PANIC("Received an empty response buffer.");
+        goto done;
     }
 
     /* Fill JSON object parameter with parsed response */
-    cJSON* ret = cJSON_Parse(buffer.data);
-    if (!ret) {
-        PANIC("cJSON_Parse returned NULL");
-        free(buffer.data);
-        return NULL;
+    result = cJSON_Parse(buffer.data);
+    if (result == NULL) {
+        PANIC("Could not parse response as JSON.");
+        goto done;
     }
 
+done:
+    /*
+     * Free the data that might have been allocated inside
+     * 'data_received_callback'.
+     */
     free(buffer.data);
-    return ret;
+    return result;
 }
 
 /* Fill thread ID list from threads.json object */
