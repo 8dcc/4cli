@@ -15,20 +15,27 @@ typedef struct {
     size_t sz;
 } Buffer;
 
-/* Curl callback */
-static size_t parse_curl_response(char* response,
-                                  size_t item_sz,
-                                  size_t item_num,
-                                  void* user_data) {
-    /* Total bytes. This value should be returned */
-    size_t real_sz = item_sz * item_num;
+/*
+ * Callback used as 'CURLOPT_WRITEFUNCTION', which will be called whenever some
+ * data is received.
+ */
+static size_t data_received_callback(char* response, size_t item_sz,
+                                     size_t item_num, void* user_data) {
+    /*
+     * Total received bytes. This is the value that this callback should return
+     * on success.
+     */
+    const size_t real_sz = item_sz * item_num;
 
-    /* Set by CURLOPT_WRITEDATA in main */
+    /*
+     * The 'user_data' argument will contain the value we set through
+     * 'CURLOPT_WRITEDATA'.
+     */
     Buffer* buffer = (Buffer*)user_data;
 
     char* ptr = realloc(buffer->data, buffer->sz + real_sz + 1);
-    if (!ptr) {
-        PANIC("Couldn't realloc from %ld to %ld bytes",
+    if (ptr == NULL) {
+        PANIC("Couldn't realloc from %ld to %ld bytes.",
               buffer->sz,
               buffer->sz + real_sz + 1);
         return 0;
@@ -53,7 +60,7 @@ cJSON* json_from_url(const char* url) {
 
     /* Set target URL, callback function and user_data parameter for callback */
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_curl_response);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, data_received_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 
     /* Make request to get the JSON string */
