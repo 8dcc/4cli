@@ -29,9 +29,8 @@ int main(void) {
 
     cJSON* threads_json = request_json_from_url(THREADS_URL);
     if (threads_json == NULL) {
-        PANIC("Couldn't get JSON for \"threads\" URL.");
         exit_code = EXIT_FAILURE;
-        goto cleanup_json;
+        goto cleanup_curl;
     }
 
     Thread thread_arr[MAX_THREADS];
