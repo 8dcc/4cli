@@ -3,17 +3,15 @@
 #define THREAD_H_ 1
 
 #include <stddef.h>
-#include <stdbool.h>
 
 #include <cjson/cJSON.h>
 
 typedef unsigned long ThreadId;
 
-#define MAX_THREADS 255
-
 /*
- * Fill Thread list from threads.json object.
+ * Fill a list of thread IDs (of the specified maximum size) by parsing the
+ * contents of the 'src' JSON.
  */
-bool threads_from_json(ThreadId* out, cJSON* in);
+size_t thread_ids_from_json(ThreadId* dst, size_t dst_sz, cJSON* src);
 
 #endif /* THREAD_H_ */
