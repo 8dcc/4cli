@@ -4,7 +4,7 @@
 #include "include/thread.h"
 #include "include/util.h"
 
-bool threads_from_json(Thread* out, cJSON* in) {
+bool threads_from_json(ThreadId* out, cJSON* in) {
     int i = 0;
 
     cJSON* cur_page;

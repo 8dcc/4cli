@@ -9,6 +9,6 @@
 #include "thread.h"
 
 /* Print thread information */
-bool print_thread_info(CURL* curl, Thread id);
+bool print_thread_info(CURL* curl, ThreadId id);
 
 #endif /* PRETTY_H_ */

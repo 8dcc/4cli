@@ -30,7 +30,7 @@ int main(void) {
         goto cleanup_curl;
     }
 
-    Thread thread_arr[MAX_THREADS];
+    ThreadId thread_arr[MAX_THREADS];
     for (int i = 0; i < MAX_THREADS; i++)
         thread_arr[i] = 0;
 

@@ -170,19 +170,19 @@ static void print_post(const char* str, bool use_pad) {
 }
 
 /* Print thread information */
-bool print_thread_info(CURL* curl, Thread id) {
+bool print_thread_info(CURL* curl, ThreadId id) {
     static char url[255] = { '\0' };
-    snprintf(url, 255, "https://a.4cdn.org/" BOARD "/thread/%d.json", id);
+    snprintf(url, 255, "https://a.4cdn.org/" BOARD "/thread/%lu.json", id);
 
     cJSON* thread = request_json_from_url(curl, url);
     if (!thread) {
-        PANIC("json_from_url returned NULL (%d)", id);
+        PANIC("json_from_url returned NULL (%lu)", id);
         return false;
     }
 
     cJSON* posts = cJSON_GetObjectItemCaseSensitive(thread, "posts");
     if (!posts || !cJSON_IsArray(posts)) {
-        PANIC("Can't find \"posts\" array in thread JSON (%d)", id);
+        PANIC("Can't find \"posts\" array in thread JSON (%lu)", id);
         return false;
     }
 
@@ -204,7 +204,7 @@ bool print_thread_info(CURL* curl, Thread id) {
             print_pad();
 
         /* Post ID and title */
-        printf(COL_INFO "[%d] " COL_NORM, id);
+        printf(COL_INFO "[%lu] " COL_NORM, id);
 
         if (is_cjson_str(post_title))
             printf(COL_TITLE "%s" COL_NORM,
