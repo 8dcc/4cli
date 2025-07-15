@@ -4,9 +4,11 @@
 
 #include <stdbool.h>
 
+#include <curl/curl.h>
+
 #include "thread.h"
 
 /* Print thread information */
-bool print_thread_info(Thread id);
+bool print_thread_info(CURL* curl, Thread id);
 
 #endif /* PRETTY_H_ */

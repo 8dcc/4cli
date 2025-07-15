@@ -170,11 +170,11 @@ static void print_post(const char* str, bool use_pad) {
 }
 
 /* Print thread information */
-bool print_thread_info(Thread id) {
+bool print_thread_info(CURL* curl, Thread id) {
     static char url[255] = { '\0' };
     snprintf(url, 255, "https://a.4cdn.org/" BOARD "/thread/%d.json", id);
 
-    cJSON* thread = request_json_from_url(url);
+    cJSON* thread = request_json_from_url(curl, url);
     if (!thread) {
         PANIC("json_from_url returned NULL (%d)", id);
         return false;

@@ -13,21 +13,18 @@
 #include "include/thread.h"
 #include "include/pretty.h"
 
-/* Globals */
-CURL* curl = NULL;
-
 int main(void) {
     int exit_code = EXIT_SUCCESS;
 
     /* Initialize curl */
-    curl = curl_easy_init();
+    CURL* curl = curl_easy_init();
     if (curl == NULL) {
         PANIC("Failed to initialize 'CURL' object.");
         exit_code = EXIT_FAILURE;
         goto cleanup_curl;
     }
 
-    cJSON* threads_json = request_json_from_url(THREADS_URL);
+    cJSON* threads_json = request_json_from_url(curl, THREADS_URL);
     if (threads_json == NULL) {
         exit_code = EXIT_FAILURE;
         goto cleanup_curl;
@@ -47,7 +44,7 @@ int main(void) {
         if (thread_arr[i] == 0)
             break;
 
-        if (!print_thread_info(thread_arr[i])) {
+        if (!print_thread_info(curl, thread_arr[i])) {
             PANIC("Couldn't print thread information.");
             exit_code = EXIT_FAILURE;
             goto cleanup_json;

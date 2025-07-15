@@ -49,7 +49,7 @@ static size_t data_received_callback(char* response, size_t item_sz,
     return real_sz;
 }
 
-cJSON* request_json_from_url(const char* url) {
+cJSON* request_json_from_url(CURL* curl, const char* url) {
     cJSON* result = NULL;
 
     /*
