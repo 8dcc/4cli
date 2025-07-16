@@ -38,7 +38,7 @@ int main(void) {
         goto cleanup_json;
     }
 
-    for (size_t i = 0; i < ARRLEN(thread_ids); i++) {
+    for (size_t i = 0; i < retreived_ids; i++) {
         if (thread_ids[i] == 0)
             break;
 
