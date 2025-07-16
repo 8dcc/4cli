@@ -4,11 +4,13 @@
 
 #include <stdbool.h>
 
-#include <curl/curl.h>
+#include <cjson/cJSON.h>
 
-#include "thread.h"
-
-/* Print thread information */
-bool print_thread_info(CURL* curl, ThreadId id);
+/*
+ * Print the contents of a specific thread JSON to the standard output.
+ *
+ * TODO: Print to specificed file.
+ */
+bool pretty_print_thread(cJSON* thread_json);
 
 #endif /* PRETTY_H_ */

@@ -39,13 +39,26 @@ int main(void) {
     }
 
     for (size_t i = 0; i < retreived_ids; i++) {
-        if (thread_ids[i] == 0)
-            break;
+        const ThreadId cur_thread_id = thread_ids[i];
+        if (cur_thread_id == 0)
+            continue;
 
-        if (!print_thread_info(curl, thread_ids[i])) {
-            exit_code = EXIT_FAILURE;
-            goto cleanup_json;
-        }
+        static char cur_thread_url[255] = { '\0' };
+        if (snprintf(cur_thread_url,
+                     sizeof(cur_thread_url),
+                     "https://a.4cdn.org/" BOARD "/thread/%lu.json",
+                     cur_thread_id) < 0)
+            continue;
+
+        cJSON* cur_thread = request_json_from_url(curl, cur_thread_url);
+        if (cur_thread == NULL)
+            continue;
+
+        if (!pretty_print_thread(cur_thread))
+            PANIC("Could not print contents of thread with ID %lu",
+                  cur_thread_id);
+
+        cJSON_Delete(cur_thread);
     }
 
 cleanup_json:

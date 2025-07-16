@@ -1,9 +1,8 @@
 
 #include <stdbool.h>
 #include <string.h>
-#include <ctype.h> /* isdigit */
+#include <ctype.h>     /* isdigit */
 
-#include <curl/curl.h>
 #include <cjson/cJSON.h>
 
 #include "include/pretty.h"
@@ -169,22 +168,10 @@ static void print_post(const char* str, bool use_pad) {
     printf("%s", COL_NORM);
 }
 
-/* Print thread information */
-bool print_thread_info(CURL* curl, ThreadId id) {
-    static char url[255] = { '\0' };
-    snprintf(url, 255, "https://a.4cdn.org/" BOARD "/thread/%lu.json", id);
-
-    cJSON* thread = request_json_from_url(curl, url);
-    if (!thread) {
-        PANIC("json_from_url returned NULL (%lu)", id);
+bool pretty_print_thread(cJSON* thread_json) {
+    cJSON* posts = cJSON_GetObjectItemCaseSensitive(thread_json, "posts");
+    if (!posts || !cJSON_IsArray(posts))
         return false;
-    }
-
-    cJSON* posts = cJSON_GetObjectItemCaseSensitive(thread, "posts");
-    if (!posts || !cJSON_IsArray(posts)) {
-        PANIC("Can't find \"posts\" array in thread JSON (%lu)", id);
-        return false;
-    }
 
     /* Is this the first post? */
     int post_count = 0;
@@ -254,6 +241,5 @@ bool print_thread_info(CURL* curl, ThreadId id) {
         post_count++;
     }
 
-    cJSON_Delete(thread);
     return true;
 }
