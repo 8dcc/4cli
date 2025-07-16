@@ -191,6 +191,7 @@ bool print_thread_info(CURL* curl, ThreadId id) {
 
     cJSON* p;
     cJSON_ArrayForEach(p, posts) {
+        cJSON* post_no       = cJSON_GetObjectItemCaseSensitive(p, "no");
         cJSON* post_replies  = cJSON_GetObjectItemCaseSensitive(p, "replies");
         cJSON* post_images   = cJSON_GetObjectItemCaseSensitive(p, "images");
         cJSON* post_title    = cJSON_GetObjectItemCaseSensitive(p, "sub");
@@ -204,7 +205,10 @@ bool print_thread_info(CURL* curl, ThreadId id) {
             print_pad();
 
         /* Post ID and title */
-        printf(COL_INFO "[%lu] " COL_NORM, id);
+        if (is_cjson_int(post_no))
+            printf(COL_INFO "[%d] " COL_NORM, post_no->valueint);
+        else
+            printf(COL_INFO "[???] " COL_NORM);
 
         if (is_cjson_str(post_title))
             printf(COL_TITLE "%s" COL_NORM,
