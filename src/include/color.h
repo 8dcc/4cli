@@ -31,8 +31,8 @@
 #ifdef USE_COLOR
 #define COL_NORM     TC_NRM TERM_NOUNDERLINE
 #define COL_BOLD     TC_B_NRM
-#define COL_ERROR    TC_RED
-#define COL_WARN     TC_YEL
+#define COL_ERROR    TC_B_RED
+#define COL_WARN     TC_RED
 #define COL_INFO     TC_B_BLU
 #define COL_URL      TC_WHT TERM_UNDERLINE
 #define COL_TITLE    TC_B_MAG /* Thread title */

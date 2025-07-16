@@ -35,7 +35,7 @@ static size_t data_received_callback(char* response, size_t item_sz,
 
     char* ptr = realloc(buffer->data, buffer->sz + real_sz + 1);
     if (ptr == NULL) {
-        PANIC("Couldn't realloc from %ld to %ld bytes.",
+        ERR("Couldn't realloc from %ld to %ld bytes.",
               buffer->sz,
               buffer->sz + real_sz + 1);
         return 0;
@@ -72,7 +72,7 @@ cJSON* request_json_from_url(CURL* curl, const char* url) {
     /* Make request to get the JSON string */
     const CURLcode code = curl_easy_perform(curl);
     if (code != CURLE_OK) {
-        PANIC("Failed to perform request to '%s': %s",
+        ERR("Failed to perform request to '%s': %s",
               url,
               curl_easy_strerror(code));
         goto done;
@@ -80,14 +80,14 @@ cJSON* request_json_from_url(CURL* curl, const char* url) {
 
     /* Make sure the callback filled the buffer with some data */
     if (buffer.data == NULL || buffer.sz <= 0) {
-        PANIC("Received an empty response buffer.");
+        ERR("Received an empty response buffer.");
         goto done;
     }
 
     /* Fill JSON object parameter with parsed response */
     result = cJSON_Parse(buffer.data);
     if (result == NULL) {
-        PANIC("Could not parse response as JSON.");
+        ERR("Could not parse response as JSON.");
         goto done;
     }
 

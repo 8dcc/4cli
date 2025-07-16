@@ -19,7 +19,7 @@ int main(void) {
     /* Initialize curl */
     CURL* curl = curl_easy_init();
     if (curl == NULL) {
-        PANIC("Failed to initialize 'CURL' object.");
+        ERR("Failed to initialize 'CURL' object.");
         exit_code = EXIT_FAILURE;
         goto cleanup_curl;
     }
@@ -55,8 +55,8 @@ int main(void) {
             continue;
 
         if (!pretty_print_thread(cur_thread))
-            PANIC("Could not print contents of thread with ID %lu",
-                  cur_thread_id);
+            ERR("Could not print contents of thread with ID %lu.",
+                cur_thread_id);
 
         cJSON_Delete(cur_thread);
     }

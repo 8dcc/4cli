@@ -13,7 +13,7 @@ size_t thread_ids_from_json(ThreadId* dst, size_t dst_sz, cJSON* src) {
         /* Obtain the "threads" array of the current page */
         cJSON* threads = cJSON_GetObjectItemCaseSensitive(cur_page, "threads");
         if (!threads) {
-            PANIC("Couldn't get thread list cJSON object from page");
+            ERR("Couldn't get thread list cJSON object from page.");
             return 0;
         }
 
@@ -24,7 +24,7 @@ size_t thread_ids_from_json(ThreadId* dst, size_t dst_sz, cJSON* src) {
             cJSON* cur_thread_no =
               cJSON_GetObjectItemCaseSensitive(cur_thread, "no");
             if (!cJSON_IsNumber(cur_thread_no)) {
-                PANIC("Thread number is not an integer.");
+                ERR("Thread number is not an integer.");
                 return 0;
             }
 

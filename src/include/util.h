@@ -19,14 +19,12 @@
  */
 #define STRLEN(STR) (ARRLEN(STR) - 1)
 
-#define PANIC(...)                                                             \
-    {                                                                          \
-        fprintf(stderr,                                                        \
-                COL_ERROR "[panic] " COL_WARN "%s: " COL_NORM,                 \
-                __func__);                                                     \
+#define ERR(...)                                                               \
+    do {                                                                       \
+        fprintf(stderr, COL_ERROR "4cli: " COL_WARN);                          \
         fprintf(stderr, __VA_ARGS__);                                          \
-        fputc('\n', stderr);                                                   \
-    }
+        fprintf(stderr, COL_NORM "\n");                                        \
+    } while (0)
 
 char* my_strcpy(char* dest, const char* src);
 
