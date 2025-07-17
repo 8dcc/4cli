@@ -56,6 +56,10 @@ static char* replace_html_entities(char* str) {
     return str;
 }
 
+/*
+ * Perform a basic conversion between HTML and plain text. The conversion is
+ * done in place, and the input buffer is returned.
+ */
 static char* html2txt(char* str) {
     char* const start = str;
 
@@ -94,12 +98,18 @@ static char* html2txt(char* str) {
     return start;
 }
 
+/*
+ * Print a constant ammount of padding.
+ */
 static inline void print_pad(void) {
     const int pad = 6;
     for (int i = 0; i < pad; i++)
         putchar(' ');
 }
 
+/*
+ * Print the specified string as if they were the contents of a 4chan post.
+ */
 static void print_post_contents(const char* str, bool use_pad) {
     bool in_quote = false; /* >text */
 
@@ -207,28 +217,28 @@ bool pretty_print_thread(cJSON* thread_json) {
         if (post_count > 0)
             print_pad();
 
-        /* Post ID and title */
+        /* Post ID */
         if (is_cjson_int(post_no))
             printf(COL_INFO "[%d] " COL_NORM, post_no->valueint);
         else
             printf(COL_INFO "[???] " COL_NORM);
 
+        /* Title */
         if (is_cjson_str(post_title))
             printf(COL_TITLE "%s" COL_NORM,
                    replace_html_entities(post_title->valuestring));
         else
             printf(COL_TITLE "Anonymous" COL_NORM);
 
+        /* Reply and image count */
         if (is_cjson_int(post_replies)) {
             printf(COL_REPLIES " (%d replies", post_replies->valueint);
-
             if (is_cjson_int(post_images))
                 printf(", %d images", post_images->valueint);
-
             printf(")" COL_NORM);
         }
 
-        /* Image URL and filename. Need to use valuedouble because of size */
+        /* Image URL and filename */
         if (is_cjson_int(post_img_url) && is_cjson_str(post_ext)) {
             putchar('\n');
             if (post_count > 0)
@@ -244,7 +254,7 @@ bool pretty_print_thread(cJSON* thread_json) {
                        post_ext->valuestring);
         }
 
-        /* Post content */
+        /* Post contents */
         if (is_cjson_str(post_content)) {
             const char* converted =
               replace_html_entities(html2txt(post_content->valuestring));
