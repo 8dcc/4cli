@@ -1,7 +1,7 @@
 
 #include <stdbool.h>
 #include <string.h>
-#include <ctype.h>     /* isdigit */
+#include <ctype.h> /* isdigit */
 
 #include <cjson/cJSON.h>
 
@@ -96,8 +96,6 @@ static char* html2txt(char* str) {
 
 static inline void print_pad(void) {
     const int pad = 6;
-
-    printf("%s", COL_NORM);
     for (int i = 0; i < pad; i++)
         putchar(' ');
 }
@@ -107,62 +105,84 @@ static inline bool iswhitespace(char c) {
 }
 
 static void print_post(const char* str, bool use_pad) {
-    bool first_of_line = true;
-    bool in_quote      = false; /* >text */
-
-    printf("%s", COL_POST);
+    bool in_quote = false; /* >text */
 
     for (size_t i = 0; str[i] != '\0'; i++) {
-        switch (str[i]) {
-            case '>':
-                if (first_of_line && use_pad)
-                    print_pad();
+        const bool first_of_line = (i == 0 || str[i - 1] == '\n');
 
-                if (str[i + 1] == '>') { /* >>... */
-                    const char* last_col = (in_quote) ? COL_QUOTE : COL_POST;
-
-                    if (str[i + 2] == '>') { /* >>>... */
-                        printf(COL_XPOST ">>>");
-
-                        for (i += 3; !iswhitespace(str[i]); i++)
-                            putchar(str[i]);
-                        i--;
-                    } else if (isdigit(str[i + 2])) { /* >>1231231 */
-                        printf(COL_XPOST ">>");
-
-                        for (i += 2; isdigit(str[i]); i++)
-                            putchar(str[i]);
-                        i--;
-                    } else {                  /* >>text */
-                        last_col = COL_QUOTE; /* Force override to quote */
-                        in_quote = true;
-                    }
-
-                    /* Reset color after >>... */
-                    printf("%s", last_col);
-                } else if (!in_quote && first_of_line) { /* >... */
-                    printf(COL_QUOTE ">");
-                    in_quote = true;
-                }
-
-                first_of_line = false;
-                break;
-            case '\n':
-                /* Reset quotes on newline */
-                printf("%s", COL_POST);
-                in_quote = false;
-
-                first_of_line = true;
-                putchar('\n');
-                break;
-            default:
-                if (first_of_line && use_pad)
-                    print_pad();
-
-                first_of_line = false;
-                putchar(str[i]);
-                break;
+        /* Whenever we change line, reset color and quote state */
+        if (first_of_line) {
+            printf(COL_POST);
+            in_quote = false;
         }
+
+        /* If we reached this point, we are not changing line */
+        if (first_of_line && use_pad)
+            print_pad();
+
+        /*
+         * The current character doesn't start a quote-like block, print it
+         * normally.
+         */
+        if (str[i] != '>') {
+            putchar(str[i]);
+            continue;
+        }
+
+        /*
+         * If we reached this point, the character is a quote arrow. If it's
+         * just one and it's at the start of a line, it's a simple quote like:
+         *   >text
+         */
+        if (str[i + 1] != '>') {
+            if (first_of_line && !in_quote) {
+                printf(COL_QUOTE);
+                in_quote = true;
+            }
+            putchar('>');
+            continue;
+        }
+
+        /*
+         * If we reached this point, there are 2 or more consecutive quote
+         * characters. First, store current color, so we can reset it later.
+         */
+        const char* last_col = (in_quote) ? COL_QUOTE : COL_POST;
+
+        /*
+         * Check if there are only two consecutive arrows, like:
+         *   >>123456789
+         *   >>text
+         *
+         * If the character after them is a digit, it's a post ID. Just print
+         * the highlighted number now.
+         *
+         * If the character after them is not a digit, just print the arrows
+         * normally, and the text will be printed in future iterations.
+         */
+        if (str[i + 2] != '>') {
+            if (isdigit(str[i + 2])) {
+                printf(COL_XPOST ">>");
+                i += 1; /* Skip arrow */
+                while (isdigit(str[i + 1]))
+                    putchar(str[++i]);
+                printf("%s", last_col);
+            } else {
+                printf(">>");
+                i++; /* Skip second arrow, so next iteration prints text */
+            }
+            continue;
+        }
+
+        /*
+         * If we reached this point, there are 3 (or more) consecutive quote
+         * characters. Just print them, and highlight up to the next space.
+         */
+        printf(COL_XPOST ">>>");
+        i += 2;                           /* Skip arrows */
+        while (!iswhitespace(str[i + 1])) /* FIXME: Use 'isspace' */
+            putchar(str[++i]);
+        printf("%s", last_col);
     }
 
     printf("%s", COL_NORM);
