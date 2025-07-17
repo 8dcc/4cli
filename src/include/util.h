@@ -19,14 +19,14 @@
  */
 #define STRLEN(STR) (ARRLEN(STR) - 1)
 
+#define STRMOVE(DST, STR) memmove(DST, STR, strlen(STR) + 1)
+
 #define ERR(...)                                                               \
     do {                                                                       \
         fprintf(stderr, COL_ERROR "4cli: " COL_WARN);                          \
         fprintf(stderr, __VA_ARGS__);                                          \
         fprintf(stderr, COL_NORM "\n");                                        \
     } while (0)
-
-char* my_strcpy(char* dest, const char* src);
 
 bool is_cjson_int(cJSON* p);
 

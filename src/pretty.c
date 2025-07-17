@@ -49,7 +49,7 @@ static char* replace_html_entities(char* str) {
         char* cur_ent;
         while ((cur_ent = strstr(str, entity_map[i].html_str)) != NULL) {
             *cur_ent = entity_map[i].character;
-            my_strcpy(cur_ent + 1, cur_ent + entity_map[i].html_str_len);
+            STRMOVE(cur_ent + 1, cur_ent + entity_map[i].html_str_len);
         }
     }
 
@@ -85,7 +85,7 @@ static char* html2txt(char* str) {
                 }
 
                 /* Shift rest of string */
-                my_strcpy(label_start, str + 1);
+                STRMOVE(label_start, str + 1);
                 str = label_start;
             } break;
 
