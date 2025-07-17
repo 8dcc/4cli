@@ -17,8 +17,14 @@
  */
 #define STRLEN(STR) (ARRLEN(STR) - 1)
 
+/*
+ * Move a string to a destination address, allowing buffer overlapping.
+ */
 #define STRMOVE(DST, STR) memmove(DST, STR, strlen(STR) + 1)
 
+/*
+ * Print an error and a newline.
+ */
 #define ERR(...)                                                               \
     do {                                                                       \
         fprintf(stderr, COL_ERROR "4cli: " COL_WARN);                          \

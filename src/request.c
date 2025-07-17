@@ -10,6 +10,9 @@
 #include "include/util.h"
 #include "include/main.h"
 
+/*
+ * Structure representing a buffer of arbitrary size.
+ */
 typedef struct {
     char* data;
     size_t sz;
