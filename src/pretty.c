@@ -100,7 +100,7 @@ static inline void print_pad(void) {
         putchar(' ');
 }
 
-static void print_post(const char* str, bool use_pad) {
+static void print_post_contents(const char* str, bool use_pad) {
     bool in_quote = false; /* >text */
 
     for (size_t i = 0; str[i] != '\0'; i++) {
@@ -250,7 +250,7 @@ bool pretty_print_thread(cJSON* thread_json) {
               replace_html_entities(html2txt(post_content->valuestring));
 
             putchar('\n');
-            print_post(converted, post_count > 0);
+            print_post_contents(converted, post_count > 0);
         }
 
         putchar('\n');
