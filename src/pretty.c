@@ -36,7 +36,7 @@ static char* replace_html_entities(char* str) {
         HTML_ENTITY_PAIR("&quot;", '\"'), HTML_ENTITY_PAIR("&apos;", '\''),
         HTML_ENTITY_PAIR("&amp;", '&'),   HTML_ENTITY_PAIR("&lt;", '<'),
         HTML_ENTITY_PAIR("&gt;", '>'),    HTML_ENTITY_PAIR("&#034;", '\"'),
-        HTML_ENTITY_PAIR("&#039", '\''),  HTML_ENTITY_PAIR("&#038;", '&'),
+        HTML_ENTITY_PAIR("&#039;", '\''), HTML_ENTITY_PAIR("&#038;", '&'),
         HTML_ENTITY_PAIR("&#060;", '<'),  HTML_ENTITY_PAIR("&#062;", '>'),
     };
 
