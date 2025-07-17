@@ -99,6 +99,20 @@ static char* html2txt(char* str) {
 }
 
 /*
+ * Check if the specified cJSON pointer is non-null number.
+ */
+static inline bool is_cjson_num(cJSON* p) {
+    return p != NULL && cJSON_IsNumber(p);
+}
+
+/*
+ * Check if the specified cJSON pointer is non-null string.
+ */
+static inline bool is_cjson_str(cJSON* p) {
+    return p != NULL && cJSON_IsString(p);
+}
+
+/*
  * Print a constant ammount of padding.
  */
 static inline void print_pad(void) {
@@ -218,7 +232,7 @@ bool pretty_print_thread(cJSON* thread_json) {
             print_pad();
 
         /* Post ID */
-        if (is_cjson_int(post_no))
+        if (is_cjson_num(post_no))
             printf(COL_INFO "[%d] " COL_NORM, post_no->valueint);
         else
             printf(COL_INFO "[???] " COL_NORM);
@@ -231,15 +245,15 @@ bool pretty_print_thread(cJSON* thread_json) {
             printf(COL_TITLE "Anonymous" COL_NORM);
 
         /* Reply and image count */
-        if (is_cjson_int(post_replies)) {
+        if (is_cjson_num(post_replies)) {
             printf(COL_REPLIES " (%d replies", post_replies->valueint);
-            if (is_cjson_int(post_images))
+            if (is_cjson_num(post_images))
                 printf(", %d images", post_images->valueint);
             printf(")" COL_NORM);
         }
 
         /* Image URL and filename */
-        if (is_cjson_int(post_img_url) && is_cjson_str(post_ext)) {
+        if (is_cjson_num(post_img_url) && is_cjson_str(post_ext)) {
             putchar('\n');
             if (post_count > 0)
                 print_pad();

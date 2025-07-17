@@ -4,7 +4,7 @@ CFLAGS   := -std=c99 -Wall -Wextra -Wpedantic -Wshadow# -ggdb3 -fsanitize=addres
 CPPFLAGS := -DUSE_COLOR
 LDLIBS   := -lcurl -lcjson
 
-SRC := main.c util.c request.c thread.c pretty.c
+SRC := main.c request.c thread.c pretty.c
 OBJ := $(addprefix obj/, $(addsuffix .o, $(SRC)))
 
 BIN := 4cli

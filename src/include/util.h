@@ -2,10 +2,8 @@
 #ifndef UTIL_H_
 #define UTIL_H_ 1
 
-#include <stdbool.h>
-
-#include <curl/curl.h>
-#include <cjson/cJSON.h>
+#include <stdio.h>  /* fprintf, stderr, etc. */
+#include <string.h> /* memmove */
 
 #include "color.h"
 
@@ -27,9 +25,5 @@
         fprintf(stderr, __VA_ARGS__);                                          \
         fprintf(stderr, COL_NORM "\n");                                        \
     } while (0)
-
-bool is_cjson_int(cJSON* p);
-
-bool is_cjson_str(cJSON* p);
 
 #endif /* UTIL_H_ */
