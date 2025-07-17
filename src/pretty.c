@@ -100,10 +100,6 @@ static inline void print_pad(void) {
         putchar(' ');
 }
 
-static inline bool iswhitespace(char c) {
-    return c == ' ' || c == '\n';
-}
-
 static void print_post(const char* str, bool use_pad) {
     bool in_quote = false; /* >text */
 
@@ -179,8 +175,8 @@ static void print_post(const char* str, bool use_pad) {
          * characters. Just print them, and highlight up to the next space.
          */
         printf(COL_XPOST ">>>");
-        i += 2;                           /* Skip arrows */
-        while (!iswhitespace(str[i + 1])) /* FIXME: Use 'isspace' */
+        i += 2; /* Skip arrows */
+        while (!isspace(str[i + 1]))
             putchar(str[++i]);
         printf("%s", last_col);
     }
