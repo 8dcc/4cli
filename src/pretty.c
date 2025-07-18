@@ -132,16 +132,16 @@ static inline bool is_cjson_str(cJSON* p) {
 /*
  * Print a constant ammount of padding.
  */
-static inline void print_pad(void) {
+static inline void print_pad(FILE* fp) {
     const int pad = 6;
     for (int i = 0; i < pad; i++)
-        putchar(' ');
+        fputc(' ', fp);
 }
 
 /*
  * Print the specified string as if they were the contents of a 4chan post.
  */
-static void print_post_contents(const char* str, bool use_pad) {
+static void print_post_contents(FILE* fp, const char* str, bool use_pad) {
     bool in_quote = false; /* >text */
 
     for (size_t i = 0; str[i] != '\0'; i++) {
@@ -149,20 +149,20 @@ static void print_post_contents(const char* str, bool use_pad) {
 
         /* Whenever we change line, reset color and quote state */
         if (first_of_line) {
-            printf(COL_POST);
+            fprintf(fp, COL_POST);
             in_quote = false;
         }
 
         /* If we reached this point, we are not changing line */
         if (first_of_line && use_pad)
-            print_pad();
+            print_pad(fp);
 
         /*
          * The current character doesn't start a quote-like block, print it
          * normally.
          */
         if (str[i] != '>') {
-            putchar(str[i]);
+            fputc(str[i], fp);
             continue;
         }
 
@@ -173,10 +173,10 @@ static void print_post_contents(const char* str, bool use_pad) {
          */
         if (str[i + 1] != '>') {
             if (first_of_line && !in_quote) {
-                printf(COL_QUOTE);
+                fprintf(fp, COL_QUOTE);
                 in_quote = true;
             }
-            putchar('>');
+            fputc('>', fp);
             continue;
         }
 
@@ -199,13 +199,13 @@ static void print_post_contents(const char* str, bool use_pad) {
          */
         if (str[i + 2] != '>') {
             if (isdigit(str[i + 2])) {
-                printf(COL_XPOST ">>");
+                fprintf(fp, COL_XPOST ">>");
                 i += 1; /* Skip arrow */
                 while (isdigit(str[i + 1]))
-                    putchar(str[++i]);
-                printf("%s", last_col);
+                    fputc(str[++i], fp);
+                fprintf(fp, "%s", last_col);
             } else {
-                printf(">>");
+                fprintf(fp, ">>");
                 i++; /* Skip second arrow, so next iteration prints text */
             }
             continue;
@@ -215,17 +215,17 @@ static void print_post_contents(const char* str, bool use_pad) {
          * If we reached this point, there are 3 (or more) consecutive quote
          * characters. Just print them, and highlight up to the next space.
          */
-        printf(COL_XPOST ">>>");
+        fprintf(fp, COL_XPOST ">>>");
         i += 2; /* Skip arrows */
         while (!isspace(str[i + 1]))
-            putchar(str[++i]);
-        printf("%s", last_col);
+            fputc(str[++i], fp);
+        fprintf(fp, "%s", last_col);
     }
 
-    printf("%s", COL_NORM);
+    fprintf(fp, "%s", COL_NORM);
 }
 
-bool pretty_print_thread(cJSON* thread_json) {
+bool pretty_print_thread(FILE* fp, cJSON* thread_json) {
     cJSON* posts = cJSON_GetObjectItemCaseSensitive(thread_json, "posts");
     if (!posts || !cJSON_IsArray(posts))
         return false;
@@ -244,45 +244,48 @@ bool pretty_print_thread(cJSON* thread_json) {
         cJSON* post_img_url  = cJSON_GetObjectItemCaseSensitive(p, "tim");
         cJSON* post_content  = cJSON_GetObjectItemCaseSensitive(p, "com");
 
-        putchar('\n');
+        fputc('\n', fp);
         if (post_count > 0)
-            print_pad();
+            print_pad(fp);
 
         /* Post ID */
         if (is_cjson_num(post_no))
-            printf(COL_INFO "[%d] " COL_NORM, post_no->valueint);
+            fprintf(fp, COL_INFO "[%d] " COL_NORM, post_no->valueint);
         else
-            printf(COL_INFO "[???] " COL_NORM);
+            fprintf(fp, COL_INFO "[???] " COL_NORM);
 
         /* Title */
         if (is_cjson_str(post_title))
-            printf(COL_TITLE "%s" COL_NORM,
-                   replace_html_entities(post_title->valuestring));
+            fprintf(fp,
+                    COL_TITLE "%s" COL_NORM,
+                    replace_html_entities(post_title->valuestring));
         else
-            printf(COL_TITLE "Anonymous" COL_NORM);
+            fprintf(fp, COL_TITLE "Anonymous" COL_NORM);
 
         /* Reply and image count */
         if (is_cjson_num(post_replies)) {
-            printf(COL_REPLIES " (%d replies", post_replies->valueint);
+            fprintf(fp, COL_REPLIES " (%d replies", post_replies->valueint);
             if (is_cjson_num(post_images))
-                printf(", %d images", post_images->valueint);
-            printf(")" COL_NORM);
+                fprintf(fp, ", %d images", post_images->valueint);
+            fprintf(fp, ")" COL_NORM);
         }
 
         /* Image URL and filename */
         if (is_cjson_num(post_img_url) && is_cjson_str(post_ext)) {
-            putchar('\n');
+            fputc('\n', fp);
             if (post_count > 0)
-                print_pad();
+                print_pad(fp);
 
-            printf(COL_URL "https://i.4cdn.org/" BOARD "/%.0f%s" COL_NORM,
-                   post_img_url->valuedouble,
-                   post_ext->valuestring);
+            fprintf(fp,
+                    COL_URL "https://i.4cdn.org/" BOARD "/%.0f%s" COL_NORM,
+                    post_img_url->valuedouble,
+                    post_ext->valuestring);
 
             if (is_cjson_str(post_filename))
-                printf(" (" COL_FILENAME "%s%s" COL_NORM ")",
-                       post_filename->valuestring,
-                       post_ext->valuestring);
+                fprintf(fp,
+                        " (" COL_FILENAME "%s%s" COL_NORM ")",
+                        post_filename->valuestring,
+                        post_ext->valuestring);
         }
 
         /* Post contents */
@@ -290,11 +293,11 @@ bool pretty_print_thread(cJSON* thread_json) {
             const char* converted =
               replace_html_entities(html2txt(post_content->valuestring));
 
-            putchar('\n');
-            print_post_contents(converted, post_count > 0);
+            fputc('\n', fp);
+            print_post_contents(fp, converted, post_count > 0);
         }
 
-        putchar('\n');
+        fputc('\n', fp);
         post_count++;
     }
 

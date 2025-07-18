@@ -71,7 +71,7 @@ int main(void) {
         if (cur_thread == NULL)
             continue;
 
-        if (!pretty_print_thread(cur_thread))
+        if (!pretty_print_thread(stdout, cur_thread))
             ERR("Could not print contents of thread with ID %lu.",
                 cur_thread_id);
 
