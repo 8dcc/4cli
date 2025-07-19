@@ -146,7 +146,12 @@ static inline void print_pad(FILE* fp, int ammount) {
  * Print the specified string as if they were the contents of a 4chan post.
  */
 static void print_post_contents(FILE* fp, const char* str, bool use_pad) {
-    bool in_quote = false;
+    bool in_quote = false; /* >foo */
+    enum {
+        XPOST_NONE,
+        XPOST_DIGITS, /* >>123456789 */
+        XPOST_TEXT,   /* >>>/foo/ */
+    } xpost_state = XPOST_NONE;
 
     for (size_t i = 0; str[i] != '\0'; i++) {
         const bool first_of_line = (i == 0 || str[i - 1] == '\n');
@@ -159,69 +164,28 @@ static void print_post_contents(FILE* fp, const char* str, bool use_pad) {
                 print_pad(fp, POST_PAD);
         }
 
-        /*
-         * The current character doesn't start a quote-like block, print it
-         * normally.
-         */
-        if (str[i] != '>') {
-            fputc(str[i], fp);
-            continue;
-        }
-
-        /*
-         * If we reached this point, the character is a quote arrow. If it's
-         * just one and it's at the start of a line, it's a simple quote like:
-         *   >text
-         */
-        if (str[i + 1] != '>') {
-            if (first_of_line && !in_quote) {
+        /* Check if this character starts a quote, and what kind */
+        if (str[i] == '>') {
+            if (str[i + 1] == '>') {
+                if (isdigit(str[i + 2])) {
+                    xpost_state = XPOST_DIGITS; /* >>123456789 */
+                    fprintf(fp, COL_XPOST);
+                } else if (str[i + 2] == '>') {
+                    xpost_state = XPOST_TEXT; /* >>>/foo/ */
+                    fprintf(fp, COL_XPOST);
+                }
+            } else if (first_of_line && !in_quote) {
+                in_quote = true; /* >foo */
                 fprintf(fp, COL_QUOTE);
-                in_quote = true;
             }
-            fputc('>', fp);
-            continue;
+        } else if ((xpost_state == XPOST_DIGITS && !isdigit(str[i])) ||
+                   (xpost_state == XPOST_TEXT && isspace(str[i]))) {
+            const char* old_color = (in_quote) ? COL_QUOTE : COL_POST;
+            fprintf(fp, "%s", old_color);
+            xpost_state = XPOST_NONE;
         }
 
-        /*
-         * If we reached this point, there are 2 or more consecutive quote
-         * characters. First, store current color, so we can reset it later.
-         */
-        const char* last_col = (in_quote) ? COL_QUOTE : COL_POST;
-
-        /*
-         * Check if there are only two consecutive arrows, like:
-         *   >>123456789
-         *   >>text
-         *
-         * If the character after them is a digit, it's a post ID. Just print
-         * the highlighted number now.
-         *
-         * If the character after them is not a digit, just print the arrows
-         * normally, and the text will be printed in future iterations.
-         */
-        if (str[i + 2] != '>') {
-            if (isdigit(str[i + 2])) {
-                fprintf(fp, COL_XPOST ">>");
-                i += 1; /* Skip arrow */
-                while (isdigit(str[i + 1]))
-                    fputc(str[++i], fp);
-                fprintf(fp, "%s", last_col);
-            } else {
-                fprintf(fp, ">>");
-                i++; /* Skip second arrow, so next iteration prints text */
-            }
-            continue;
-        }
-
-        /*
-         * If we reached this point, there are 3 (or more) consecutive quote
-         * characters. Just print them, and highlight up to the next space.
-         */
-        fprintf(fp, COL_XPOST ">>>");
-        i += 2; /* Skip arrows */
-        while (!isspace(str[i + 1]))
-            fputc(str[++i], fp);
-        fprintf(fp, "%s", last_col);
+        fputc(str[i], fp);
     }
 
     fprintf(fp, "%s", COL_NORM);
