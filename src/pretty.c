@@ -155,11 +155,9 @@ static void print_post_contents(FILE* fp, const char* str, bool use_pad) {
         if (first_of_line) {
             fprintf(fp, COL_POST);
             in_quote = false;
+            if (use_pad)
+                print_pad(fp, POST_PAD);
         }
-
-        /* If we reached this point, we are not changing line */
-        if (first_of_line && use_pad)
-            print_pad(fp, POST_PAD);
 
         /*
          * The current character doesn't start a quote-like block, print it
