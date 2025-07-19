@@ -135,10 +135,10 @@ static inline bool is_cjson_str(cJSON* p) {
 }
 
 /*
- * Print a constant ammount of padding.
+ * Print a constant amount of padding.
  */
-static inline void print_pad(FILE* fp, int ammount) {
-    for (int i = 0; i < ammount; i++)
+static inline void print_pad(FILE* fp, int amount) {
+    for (int i = 0; i < amount; i++)
         fputc(' ', fp);
 }
 
