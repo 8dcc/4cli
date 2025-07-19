@@ -28,6 +28,11 @@
 #include "include/main.h"
 
 /*
+ * Number of spaces used for indenting post replies.
+ */
+#define POST_PAD 6
+
+/*
  * Structure representing an HTML entity string, along with its corresponding
  * ASCII character.
  */
@@ -132,9 +137,8 @@ static inline bool is_cjson_str(cJSON* p) {
 /*
  * Print a constant ammount of padding.
  */
-static inline void print_pad(FILE* fp) {
-    const int pad = 6;
-    for (int i = 0; i < pad; i++)
+static inline void print_pad(FILE* fp, int ammount) {
+    for (int i = 0; i < ammount; i++)
         fputc(' ', fp);
 }
 
@@ -142,7 +146,7 @@ static inline void print_pad(FILE* fp) {
  * Print the specified string as if they were the contents of a 4chan post.
  */
 static void print_post_contents(FILE* fp, const char* str, bool use_pad) {
-    bool in_quote = false; /* >text */
+    bool in_quote = false;
 
     for (size_t i = 0; str[i] != '\0'; i++) {
         const bool first_of_line = (i == 0 || str[i - 1] == '\n');
@@ -155,7 +159,7 @@ static void print_post_contents(FILE* fp, const char* str, bool use_pad) {
 
         /* If we reached this point, we are not changing line */
         if (first_of_line && use_pad)
-            print_pad(fp);
+            print_pad(fp, POST_PAD);
 
         /*
          * The current character doesn't start a quote-like block, print it
@@ -246,7 +250,7 @@ bool pretty_print_thread(FILE* fp, cJSON* thread_json) {
 
         fputc('\n', fp);
         if (post_count > 0)
-            print_pad(fp);
+            print_pad(fp, POST_PAD);
 
         /* Post ID */
         if (is_cjson_num(post_no))
@@ -274,7 +278,7 @@ bool pretty_print_thread(FILE* fp, cJSON* thread_json) {
         if (is_cjson_num(post_img_url) && is_cjson_str(post_ext)) {
             fputc('\n', fp);
             if (post_count > 0)
-                print_pad(fp);
+                print_pad(fp, POST_PAD);
 
             fprintf(fp,
                     COL_URL "https://i.4cdn.org/" BOARD "/%.0f%s" COL_NORM,
