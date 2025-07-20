@@ -162,6 +162,10 @@ static void print_post_contents(FILE* fp, const char* str, bool use_pad) {
     /* Position in the string of the last printed newline or space */
     size_t last_newline_idx = 0, last_space_idx = 0;
 
+    size_t max_column = MAX_COLUMN;
+    if (use_pad)
+        max_column -= POST_PAD;
+
     size_t i;
     for (i = 0; str[i] != '\0'; i++) {
         /*
@@ -181,8 +185,7 @@ static void print_post_contents(FILE* fp, const char* str, bool use_pad) {
         const bool is_first_word_of_input_line =
           (last_space_idx == 0 || str[last_space_idx] == '\n');
 
-        /* TODO: Check one-off errors */
-        if (i - last_newline_idx >= MAX_COLUMN) {
+        if (i - last_newline_idx >= max_column) {
             fputc('\n', fp);
             last_newline_idx = last_space_idx;
             if (use_pad)
