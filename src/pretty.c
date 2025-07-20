@@ -158,10 +158,11 @@ static void print_post_contents(FILE* fp, const char* str, bool use_pad) {
 
         /* Whenever we change line, reset color and quote state */
         if (first_of_line) {
-            fprintf(fp, COL_POST);
-            in_quote = false;
+            if (in_quote)
+                fprintf(fp, COL_POST);
             if (use_pad)
                 print_pad(fp, POST_PAD);
+            in_quote = false;
         }
 
         /* Check if this character starts a quote, and what kind */
