@@ -41,12 +41,14 @@ int main(void) {
         goto cleanup_curl;
     }
 
+    /* Obtain the JSON with the thread list */
     cJSON* root_json = request_json_from_url(curl, THREADS_URL);
     if (root_json == NULL) {
         exit_code = EXIT_FAILURE;
         goto cleanup_curl;
     }
 
+    /* Extract the IDs of all available threads */
     static ThreadId thread_ids[MAX_THREADS] = { 0 };
     const size_t retreived_ids =
       thread_ids_from_json(thread_ids, ARRLEN(thread_ids), root_json);
@@ -55,6 +57,7 @@ int main(void) {
         goto cleanup_json;
     }
 
+    /* Request information about each thread, and print its contents */
     for (size_t i = 0; i < retreived_ids; i++) {
         const ThreadId cur_thread_id = thread_ids[i];
         if (cur_thread_id == 0)
