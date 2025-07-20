@@ -28,6 +28,11 @@
 #include "include/main.h"
 
 /*
+ * Maximum column for wrapping text in posts.
+ */
+#define MAX_COLUMN 80
+
+/*
  * Number of spaces used for indenting post replies.
  */
 #define POST_PAD 6
@@ -143,7 +148,8 @@ static inline void print_pad(FILE* fp, int amount) {
 }
 
 /*
- * Print the specified string as if they were the contents of a 4chan post.
+ * Print the specified string as if they were the contents of a 4chan post,
+ * wrapping lines at word boundaries if they exceed MAX_COLUMN.
  */
 static void print_post_contents(FILE* fp, const char* str, bool use_pad) {
     bool in_quote = false; /* >foo */
@@ -153,42 +159,87 @@ static void print_post_contents(FILE* fp, const char* str, bool use_pad) {
         XPOST_TEXT,   /* >>>/foo/ */
     } xpost_state = XPOST_NONE;
 
-    for (size_t i = 0; str[i] != '\0'; i++) {
-        const bool first_of_line = (i == 0 || str[i - 1] == '\n');
+    /* Position in the string of the last printed newline or space */
+    size_t last_newline_idx = 0, last_space_idx = 0;
 
-        /* Whenever we change line, reset color and quote state */
-        if (first_of_line) {
+    size_t i;
+    for (i = 0; str[i] != '\0'; i++) {
+        /*
+         * Store that we found a space (and optionally a newline) in the current
+         * iteration.
+         */
+        if (isspace(str[i])) {
+            last_space_idx = i;
+            if (str[i] == '\n')
+                last_newline_idx = i;
+            continue;
+        }
+
+        if (!isspace(str[i + 1]) && str[i + 1] != '\0')
+            continue;
+
+        const bool is_first_word_of_input_line =
+          (last_space_idx == 0 || str[last_space_idx] == '\n');
+
+        /* TODO: Check one-off errors */
+        if (i - last_newline_idx >= MAX_COLUMN) {
+            fputc('\n', fp);
+            last_newline_idx = last_space_idx;
+            if (use_pad)
+                print_pad(fp, POST_PAD);
+            /*
+             * It shouldn't be necessary to specify the color again, but some
+             * terminals reset on newline (e.g. when piping to 'less -R').
+             */
             if (in_quote)
+                fprintf(fp, COL_QUOTE ">");
+        } else if (last_space_idx != 0) {
+            fputc(str[last_space_idx], fp);
+        }
+
+        /* Whenever we change an input line, reset color and quote state */
+        if (is_first_word_of_input_line) {
+            if (in_quote || xpost_state != XPOST_NONE)
                 fprintf(fp, COL_POST);
             if (use_pad)
                 print_pad(fp, POST_PAD);
-            in_quote = false;
-        }
-
-        /* Check if this character starts a quote, and what kind */
-        if (str[i] == '>') {
-            if (str[i + 1] == '>') {
-                if (isdigit(str[i + 2])) {
-                    xpost_state = XPOST_DIGITS; /* >>123456789 */
-                    fprintf(fp, COL_XPOST);
-                } else if (str[i + 2] == '>') {
-                    xpost_state = XPOST_TEXT; /* >>>/foo/ */
-                    fprintf(fp, COL_XPOST);
-                }
-            } else if (first_of_line && !in_quote) {
-                in_quote = true; /* >foo */
-                fprintf(fp, COL_QUOTE);
-            }
-        } else if ((xpost_state == XPOST_DIGITS && !isdigit(str[i])) ||
-                   (xpost_state == XPOST_TEXT && isspace(str[i]))) {
-            const char* old_color = (in_quote) ? COL_QUOTE : COL_POST;
-            fprintf(fp, "%s", old_color);
+            in_quote    = false;
             xpost_state = XPOST_NONE;
         }
 
-        fputc(str[i], fp);
+        /* Print the last word of the input */
+        const size_t word_start =
+          (last_space_idx == 0) ? 0 : last_space_idx + 1;
+        for (size_t j = word_start; j <= i; j++) {
+            /* Check if this character starts a quote, and what kind */
+            if (xpost_state == XPOST_NONE && str[j] == '>') {
+                if (str[j + 1] == '>') {
+                    if (isdigit(str[j + 2])) {
+                        xpost_state = XPOST_DIGITS; /* >>123456789 */
+                        fprintf(fp, COL_XPOST);
+                    } else if (str[j + 2] == '>') {
+                        xpost_state = XPOST_TEXT; /* >>>/foo/ */
+                        fprintf(fp, COL_XPOST);
+                    }
+
+                    while (str[j + 1] == '>')
+                        fputc(str[j++], fp);
+                } else if (is_first_word_of_input_line && !in_quote) {
+                    in_quote = true; /* >foo */
+                    fprintf(fp, COL_QUOTE);
+                }
+            } else if ((xpost_state == XPOST_DIGITS && !isdigit(str[j])) ||
+                       (xpost_state == XPOST_TEXT && isspace(str[j]))) {
+                const char* old_color = (in_quote) ? COL_QUOTE : COL_POST;
+                fprintf(fp, "%s", old_color);
+                xpost_state = XPOST_NONE;
+            }
+
+            fputc(str[j], fp);
+        }
     }
 
+    /* Reset terminal color */
     fprintf(fp, "%s", COL_NORM);
 }
 
